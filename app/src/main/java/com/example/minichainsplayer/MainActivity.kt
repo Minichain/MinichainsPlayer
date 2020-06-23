@@ -1,11 +1,15 @@
 package com.example.minichainsplayer
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.Process
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
@@ -13,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import java.io.File
+import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity() {
     lateinit var playButton: ImageButton
@@ -50,13 +55,15 @@ class MainActivity : AppCompatActivity() {
         currentSongLengthTexView = this.findViewById(R.id.current_song_length)
         currentSongCurrentTimeTexView = this.findViewById(R.id.current_song_current_time)
 
-//        musicLocation = "/sdcard/Music/"
-        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
+        musicLocation = "/sdcard/Music/"
+//        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
         Log.d("MinichainsPlayer:: ", "musicLocation: " + musicLocation)
 
         fillPlayList()
 
         initUpdateCurrentSongInfoThread()
+
+        updateShuffleButtonAlpha()
 
         playButton.setOnClickListener {
             if (!isPlaying) {
@@ -103,15 +110,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         shuffleButton.setOnClickListener {
-            if (shuffle) {
+            shuffle = if (shuffle) {
                 Toast.makeText(this, "Shuffle disabled", Toast.LENGTH_SHORT).show()
-                shuffle = false
-                shuffleButton.alpha = 0.5f
+                false
             } else {
                 Toast.makeText(this, "Shuffle enabled", Toast.LENGTH_SHORT).show()
-                shuffle = true
-                shuffleButton.alpha = 1f
+                true
             }
+            updateShuffleButtonAlpha()
+        }
+    }
+
+    private fun updateShuffleButtonAlpha() {
+        if (shuffle) {
+            shuffleButton.alpha = 1f
+        } else {
+            shuffleButton.alpha = 0.5f
         }
     }
 
@@ -212,5 +226,35 @@ class MainActivity : AppCompatActivity() {
             Log.e("MinichainsPlayer:: ", "Error loading play list: " + e)
             return
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.dropdown_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+        val intent: Intent
+        return when (id) {
+            R.id.exit_app_option -> {
+                closeApp()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun closeApp() {
+        onDestroy()
+        Process.killProcess(Process.myPid())
+        exitProcess(-1)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        //If there is a Service running...
+//        val serviceIntent = Intent(applicationContext, MinichainsPlayerService::class.java)
+//        applicationContext.stopService(serviceIntent)
     }
 }
