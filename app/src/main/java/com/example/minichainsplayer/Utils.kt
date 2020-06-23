@@ -1,7 +1,5 @@
 package com.example.minichainsplayer
 
-import android.util.Log
-
 class Utils {
     companion object {
         fun millisecondsToHoursMinutesAndSeconds(milliseconds: Long?): String {

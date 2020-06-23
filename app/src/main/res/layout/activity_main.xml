@@ -22,7 +22,7 @@
         android:id="@+id/previous_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="25dp"
+        android:layout_marginBottom="30dp"
         android:layout_centerInParent="true"
         android:background="@drawable/baseline_skip_previous_white_36"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -33,11 +33,23 @@
         android:id="@+id/next_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="25dp"
+        android:layout_marginBottom="30dp"
         android:layout_centerInParent="true"
         android:background="@drawable/baseline_skip_next_white_36"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/play_button" />
+
+    <ImageButton
+        android:id="@+id/shuffle_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="112dp"
+        android:background="@drawable/baseline_shuffle_white_36"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toEndOf="@+id/play_button" />
 
     <TextView
