@@ -8,10 +8,10 @@ android {
 
     defaultConfig {
         applicationId "com.example.minichainsplayer"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 30
         versionCode 1
-        versionName "0.01.00"
+        versionName "0.01.01"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

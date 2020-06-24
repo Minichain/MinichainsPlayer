@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     private var isPlaying = false
     private var mediaPlayer: MediaPlayer? = null
-    private var currentSongTime = 0
+    private var currentSongTime: Int = 0
     private var musicLocation = ""
     private var currentSongInteger = 0
     private var shuffle = false
@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         nextButton = this.findViewById(R.id.next_button)
         shuffleButton = this.findViewById(R.id.shuffle_button)
         currentSongTexView = this.findViewById(R.id.current_song_name)
+        currentSongTexView.isSelected = true
         currentSongLengthTexView = this.findViewById(R.id.current_song_length)
         currentSongCurrentTimeTexView = this.findViewById(R.id.current_song_current_time)
 
@@ -61,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
         fillPlayList()
 
-        initUpdateCurrentSongInfoThread()
+        initUpdateCurrentSongThread()
 
         updateShuffleButtonAlpha()
 
@@ -70,7 +71,7 @@ class MainActivity : AppCompatActivity() {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "Playing", Toast.LENGTH_SHORT).show()
                     if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
-                        playSong(listOfSongs?.get(currentSongInteger)?.path + listOfSongs?.get(currentSongInteger)?.songName, currentSongTime)
+                        playCurrentSong()
                     }
                 } else {
                     Toast.makeText(this, "Cannot be played", Toast.LENGTH_SHORT).show()
@@ -89,7 +90,8 @@ class MainActivity : AppCompatActivity() {
             }
             mediaPlayer?.pause()
             if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
-                playSong(listOfSongs?.get(currentSongInteger)?.path + listOfSongs?.get(currentSongInteger)?.songName, 0)
+                this.currentSongTime = 0
+                playCurrentSong()
             }
         }
 
@@ -105,7 +107,8 @@ class MainActivity : AppCompatActivity() {
             }
             mediaPlayer?.pause()
             if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
-                playSong(listOfSongs?.get(currentSongInteger)?.path + listOfSongs?.get(currentSongInteger)?.songName, 0)
+                this.currentSongTime = 0
+                playCurrentSong()
             }
         }
 
@@ -141,14 +144,14 @@ class MainActivity : AppCompatActivity() {
         thread.start()
     }
 
-    private fun initUpdateCurrentSongInfoThread() {
+    private fun initUpdateCurrentSongThread() {
         val thread: Thread = object : Thread() {
             override fun run() {
                 try {
                     while (!this.isInterrupted) {
                         sleep(250)
                         runOnUiThread {
-                            updateCurrentSongInfo()
+                            updateCurrentSong()
                         }
                     }
                 } catch (e: InterruptedException) {
@@ -159,32 +162,50 @@ class MainActivity : AppCompatActivity() {
         thread.start()
     }
 
-    private fun updateCurrentSongInfo() {
+    private fun updateCurrentSong() {
         if (listOfSongs == null || listOfSongs?.isEmpty()!!) {
             return
         }
-        currentSongTexView.text = listOfSongs?.get(currentSongInteger)?.songName
+
+        if (currentSongTexView.text != listOfSongs?.get(currentSongInteger)?.songName) {
+            currentSongTexView.text = listOfSongs?.get(currentSongInteger)?.songName
+        }
+
         currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(listOfSongs?.get(currentSongInteger)?.length)
-        currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(mediaPlayer?.currentPosition?.toLong())
+        if (isPlaying) {
+            currentSongTime = mediaPlayer?.currentPosition!!
+        }
+        currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongTime.toLong())
+
         updateSongDuration()
+
+        if (currentSongTime >= listOfSongs?.get(currentSongInteger)?.length!!) {
+            //Song has ended. Playing next song...
+            nextButton.performClick()
+        }
     }
 
-    private fun playSong(songPath: String?, currentSongTime: Int) {
-        this.currentSongTime = currentSongTime
+    private fun playCurrentSong() {
         mediaPlayer = MediaPlayer()
-        mediaPlayer?.setDataSource(songPath)
+        mediaPlayer?.setDataSource(listOfSongs?.get(currentSongInteger)?.path
+                + listOfSongs?.get(currentSongInteger)?.songName
+                + "."
+                + listOfSongs?.get(currentSongInteger)?.format)
         mediaPlayer?.prepare()
-        mediaPlayer?.seekTo(currentSongTime)
+        mediaPlayer?.seekTo(currentSongTime.toInt())
         mediaPlayer?.start()
         isPlaying = true
-        updateCurrentSongInfo()
+        updateCurrentSong()
         playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
     }
 
     private fun updateSongDuration() {
         if (listOfSongs?.get(currentSongInteger)?.length!!.toInt() <= 0) {
             val metaRetriever = MediaMetadataRetriever()
-            metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path + listOfSongs?.get(currentSongInteger)?.songName)
+            metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path
+                    + listOfSongs?.get(currentSongInteger)?.songName
+                    + "."
+                    + listOfSongs?.get(currentSongInteger)?.format)
             val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             var duration: Long = -1
             if (durationString != null) {
@@ -217,7 +238,9 @@ class MainActivity : AppCompatActivity() {
                     fillPlayList(file.path)
                 } else if (file.name.endsWith(".mp3")) {
                     Log.d("MinichainsPlayer:: ", "Song added to play list: " + file.name)
-                    val songFile = SongFile(rootPath, file.name, -1)
+                    val fileName = file.name.substring(0, file.name.lastIndexOf("."))
+                    val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
+                    val songFile = SongFile(rootPath, fileName, fileFormat, -1)
                     listOfSongs?.add(songFile)
                     Log.d("MinichainsPlayer:: ", "fileList size: " + listOfSongs?.size)
                 }
