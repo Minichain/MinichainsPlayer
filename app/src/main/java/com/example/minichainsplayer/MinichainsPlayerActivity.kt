@@ -1,13 +1,16 @@
 package com.example.minichainsplayer
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.os.Process
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageButton
@@ -19,7 +22,9 @@ import androidx.core.content.ContextCompat
 import java.io.File
 import kotlin.system.exitProcess
 
-class MainActivity : AppCompatActivity() {
+class MinichainsPlayerActivity : AppCompatActivity() {
+    private lateinit var minichainsPlayerBroadcastReceiver: MinichainsPlayerActivityBroadcastReceiver
+
     lateinit var playButton: ImageButton
     lateinit var previousButton: ImageButton
     lateinit var nextButton: ImageButton
@@ -40,10 +45,62 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        checkPermissions()
+        init()
+    }
 
+    private fun checkPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             val permissions = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
             ActivityCompat.requestPermissions(this, permissions, 0) //Check the requestCode later
+        }
+    }
+
+    override fun onStart() {
+        Log.l("MinichainsPlayerActivityLog:: onStart")
+        super.onStart()
+        registerMinichainsPlayerActivityBroadcastReceiver()
+    }
+
+    override fun onResume() {
+        Log.l("MinichainsPlayerActivityLog:: onResume")
+        super.onResume()
+    }
+
+    override fun onPause() {
+        Log.l("MinichainsPlayerActivityLog:: onPause")
+        super.onPause()
+        try {
+            unregisterReceiver(minichainsPlayerBroadcastReceiver)
+        } catch (e: IllegalArgumentException) {
+            Log.e("MinichainsPlayerActivityLog:: error un-registering receiver $e")
+        }
+    }
+
+    override fun onStop() {
+        Log.l("MinichainsPlayerActivityLog:: onStop")
+        super.onStop()
+        try {
+            unregisterReceiver(minichainsPlayerBroadcastReceiver)
+        } catch (e: IllegalArgumentException) {
+        }
+    }
+
+    private fun init() {
+        val serviceIntent = Intent(applicationContext, MinichainsPlayerService::class.java)
+
+        //Start service:
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                applicationContext.startForegroundService(serviceIntent)
+                Log.l("startForegroundService")
+            } catch (e: java.lang.Exception) {
+                applicationContext.startService(serviceIntent)
+                Log.l("startService")
+            }
+        } else {
+            Log.l("startService")
+            applicationContext.startService(serviceIntent)
         }
 
         /** INITIALIZE VIEWS **/
@@ -58,7 +115,7 @@ class MainActivity : AppCompatActivity() {
 
         musicLocation = "/sdcard/Music/"
 //        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
-        Log.d("MinichainsPlayer:: ", "musicLocation: " + musicLocation)
+        Log.l("musicLocation: " + musicLocation)
 
         fillPlayList()
 
@@ -137,8 +194,8 @@ class MainActivity : AppCompatActivity() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
                 fillPlayList(musicLocation)
-                Log.d("MinichainsPlayer:: ", "listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
-                Log.d("MinichainsPlayer:: ", "listOfSongs size: " + listOfSongs?.size)
+                Log.l("listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
+                Log.l("listOfSongs size: " + listOfSongs?.size)
             }
         }
         thread.start()
@@ -237,16 +294,16 @@ class MainActivity : AppCompatActivity() {
                 if (file.isDirectory) {
                     fillPlayList(file.path)
                 } else if (file.name.endsWith(".mp3")) {
-                    Log.d("MinichainsPlayer:: ", "Song added to play list: " + file.name)
+//                    Log.l("Song added to play list: " + file.name)
                     val fileName = file.name.substring(0, file.name.lastIndexOf("."))
                     val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
                     val songFile = SongFile(rootPath, fileName, fileFormat, -1)
                     listOfSongs?.add(songFile)
-                    Log.d("MinichainsPlayer:: ", "fileList size: " + listOfSongs?.size)
+//                    Log.l("fileList size: " + listOfSongs?.size)
                 }
             }
         } catch (e: Exception) {
-            Log.e("MinichainsPlayer:: ", "Error loading play list: " + e)
+            Log.e(String().plus("Error loading play list: ").plus(e))
             return
         }
     }
@@ -277,7 +334,54 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         //If there is a Service running...
-//        val serviceIntent = Intent(applicationContext, MinichainsPlayerService::class.java)
-//        applicationContext.stopService(serviceIntent)
+        val serviceIntent = Intent(applicationContext, MinichainsPlayerService::class.java)
+        applicationContext.stopService(serviceIntent)
     }
+
+    private fun sendBroadcastToService(broadcastMessage: BroadcastMessage) {
+        Log.l("MinichainsPlayerActivityLog:: sending broadcast $broadcastMessage")
+        try {
+            val broadCastIntent = Intent()
+            broadCastIntent.action = broadcastMessage.toString()
+            sendBroadcast(broadCastIntent)
+        } catch (ex: java.lang.Exception) {
+            ex.printStackTrace()
+        }
+    }
+
+    internal class MinichainsPlayerActivityBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(
+            context: Context,
+            intent: Intent
+        ) {
+            Log.l("MinichainsPlayerActivityLog:: Broadcast received " + intent.action)
+            try {
+                val broadcast = intent.action
+                val extras = intent.extras
+                if (broadcast != null) {
+                    if (broadcast == BroadcastMessage.START_PLAYING.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: refreshing frame!")
+                    } else {
+                        Log.l("MinichainsPlayerActivityLog:: Unknown broadcast received")
+                    }
+                }
+            } catch (ex: java.lang.Exception) {
+                ex.printStackTrace()
+            }
+        }
+    }
+
+    private fun registerMinichainsPlayerActivityBroadcastReceiver() {
+        minichainsPlayerBroadcastReceiver = MinichainsPlayerActivityBroadcastReceiver()
+        try {
+            val intentFilter = IntentFilter()
+            for (i in BroadcastMessage.values().indices) {
+                intentFilter.addAction(BroadcastMessage.values().get(i).toString())
+            }
+            registerReceiver(minichainsPlayerBroadcastReceiver, intentFilter)
+        } catch (ex: java.lang.Exception) {
+            ex.printStackTrace()
+        }
+    }
+
 }
