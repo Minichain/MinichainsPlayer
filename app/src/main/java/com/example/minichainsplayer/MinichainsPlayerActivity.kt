@@ -349,18 +349,22 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         }
     }
 
-    internal class MinichainsPlayerActivityBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(
-            context: Context,
-            intent: Intent
-        ) {
+    inner class MinichainsPlayerActivityBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
             Log.l("MinichainsPlayerActivityLog:: Broadcast received " + intent.action)
             try {
                 val broadcast = intent.action
                 val extras = intent.extras
                 if (broadcast != null) {
-                    if (broadcast == BroadcastMessage.START_PLAYING.toString()) {
-                        Log.l("MinichainsPlayerActivityLog:: refreshing frame!")
+                    if (broadcast == BroadcastMessage.START_STOP_PLAYING.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: START_STOP_PLAYING")
+                        playButton.performClick()
+                    } else if (broadcast == BroadcastMessage.PREVIOUS_SONG.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: PREVIOUS_SONG")
+                        previousButton.performClick()
+                    } else if (broadcast == BroadcastMessage.NEXT_SONG.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: NEXT_SONG")
+                        nextButton.performClick()
                     } else {
                         Log.l("MinichainsPlayerActivityLog:: Unknown broadcast received")
                     }
@@ -376,12 +380,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         try {
             val intentFilter = IntentFilter()
             for (i in BroadcastMessage.values().indices) {
-                intentFilter.addAction(BroadcastMessage.values().get(i).toString())
+                intentFilter.addAction(BroadcastMessage.values()[i].toString())
             }
             registerReceiver(minichainsPlayerBroadcastReceiver, intentFilter)
         } catch (ex: java.lang.Exception) {
             ex.printStackTrace()
         }
     }
-
 }
