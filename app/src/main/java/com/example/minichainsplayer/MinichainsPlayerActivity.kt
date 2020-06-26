@@ -33,8 +33,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     lateinit var currentSongLengthTexView: TextView
     lateinit var currentSongCurrentTimeTexView: TextView
 
-    private var isPlaying = false
-    private var mediaPlayer: MediaPlayer? = null
+    private var playing = false
     private var currentSongTime: Int = 0
     private var musicLocation = ""
     private var currentSongInteger = 0
@@ -119,12 +118,13 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
         fillPlayList()
 
-        initUpdateCurrentSongThread()
+        initUpdateViewsThread()
 
         updateShuffleButtonAlpha()
 
         playButton.setOnClickListener {
-            if (!isPlaying) {
+            if (!playing) {
+                sendBroadcastToService(BroadcastMessage.START_PLAYING)
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "Playing", Toast.LENGTH_SHORT).show()
                     if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
@@ -145,7 +145,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             } else {
                 currentSongInteger = (currentSongInteger + 1) % listOfSongs?.size!!
             }
-            mediaPlayer?.pause()
+            sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
             if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
                 this.currentSongTime = 0
                 playCurrentSong()
@@ -162,7 +162,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                     currentSongInteger = listOfSongs?.size!! - 1
                 }
             }
-            mediaPlayer?.pause()
+            sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
             if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
                 this.currentSongTime = 0
                 playCurrentSong()
@@ -201,25 +201,24 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         thread.start()
     }
 
-    private fun initUpdateCurrentSongThread() {
+    private fun initUpdateViewsThread() {
         val thread: Thread = object : Thread() {
             override fun run() {
                 try {
                     while (!this.isInterrupted) {
-                        sleep(250)
+                        sleep(200)
                         runOnUiThread {
-                            updateCurrentSong()
+                            updateViews()
                         }
                     }
                 } catch (e: InterruptedException) {
                 }
             }
         }
-
         thread.start()
     }
 
-    private fun updateCurrentSong() {
+    private fun updateViews() {
         if (listOfSongs == null || listOfSongs?.isEmpty()!!) {
             return
         }
@@ -229,9 +228,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         }
 
         currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(listOfSongs?.get(currentSongInteger)?.length)
-        if (isPlaying) {
-            currentSongTime = mediaPlayer?.currentPosition!!
-        }
         currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongTime.toLong())
 
         updateSongDuration()
@@ -240,20 +236,24 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             //Song has ended. Playing next song...
             nextButton.performClick()
         }
+
+        if (playing) {
+            playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
+        } else {
+            playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
+        }
     }
 
     private fun playCurrentSong() {
-        mediaPlayer = MediaPlayer()
-        mediaPlayer?.setDataSource(listOfSongs?.get(currentSongInteger)?.path
+        var bundle = Bundle()
+        bundle.putString("songPath", listOfSongs?.get(currentSongInteger)?.path
                 + listOfSongs?.get(currentSongInteger)?.songName
                 + "."
                 + listOfSongs?.get(currentSongInteger)?.format)
-        mediaPlayer?.prepare()
-        mediaPlayer?.seekTo(currentSongTime.toInt())
-        mediaPlayer?.start()
-        isPlaying = true
-        updateCurrentSong()
-        playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
+        bundle.putInt("currentSongTime", currentSongTime)
+        sendBroadcastToService(BroadcastMessage.START_PLAYING, bundle)
+        playing = true
+        updateViews()
     }
 
     private fun updateSongDuration() {
@@ -274,12 +274,10 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
     private fun pauseCurrentSong() {
         Toast.makeText(this, "Paused", Toast.LENGTH_SHORT).show()
-        if (isPlaying) {
-            isPlaying = false
-            mediaPlayer?.pause()
-            currentSongTime = mediaPlayer?.currentPosition!!
+        if (playing) {
+            playing = false
+            sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
         }
-        playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
     }
 
     private fun fillPlayList(rootPath: String) {
@@ -339,10 +337,17 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     }
 
     private fun sendBroadcastToService(broadcastMessage: BroadcastMessage) {
+        sendBroadcastToService(broadcastMessage, null)
+    }
+
+    private fun sendBroadcastToService(broadcastMessage: BroadcastMessage, bundle: Bundle?) {
         Log.l("MinichainsPlayerActivityLog:: sending broadcast $broadcastMessage")
         try {
             val broadCastIntent = Intent()
             broadCastIntent.action = broadcastMessage.toString()
+            if (bundle != null) {
+                broadCastIntent.putExtras(bundle)
+            }
             sendBroadcast(broadCastIntent)
         } catch (ex: java.lang.Exception) {
             ex.printStackTrace()
@@ -351,20 +356,27 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
     inner class MinichainsPlayerActivityBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.l("MinichainsPlayerActivityLog:: Broadcast received " + intent.action)
+//            Log.l("MinichainsPlayerActivityLog:: Broadcast received. Context: " + context + ", intent:" + intent.action)
             try {
                 val broadcast = intent.action
                 val extras = intent.extras
                 if (broadcast != null) {
-                    if (broadcast == BroadcastMessage.START_STOP_PLAYING.toString()) {
-                        Log.l("MinichainsPlayerActivityLog:: START_STOP_PLAYING")
-                        playButton.performClick()
+                    if (broadcast == BroadcastMessage.START_PLAYING.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: START_PLAYING")
+                    } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: STOP_PLAYING")
+                    } else if (broadcast == BroadcastMessage.START_STOP_PLAYING_NOTIFICATION.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: START_STOP_PLAYING_NOTIFICATION")
                     } else if (broadcast == BroadcastMessage.PREVIOUS_SONG.toString()) {
                         Log.l("MinichainsPlayerActivityLog:: PREVIOUS_SONG")
-                        previousButton.performClick()
                     } else if (broadcast == BroadcastMessage.NEXT_SONG.toString()) {
                         Log.l("MinichainsPlayerActivityLog:: NEXT_SONG")
-                        nextButton.performClick()
+                    } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY.toString()) {
+//                        Log.l("MinichainsPlayerActivityLog:: UPDATE_ACTIVITY")
+                        if (extras != null) {
+                            currentSongTime = extras.getInt("currentSongTime")
+                            playing = extras.getBoolean("playing")
+                        }
                     } else {
                         Log.l("MinichainsPlayerActivityLog:: Unknown broadcast received")
                     }
