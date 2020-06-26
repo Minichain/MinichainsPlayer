@@ -6,5 +6,6 @@ enum class BroadcastMessage {
     START_STOP_PLAYING_NOTIFICATION,
     PREVIOUS_SONG,
     NEXT_SONG,
-    UPDATE_ACTIVITY
+    UPDATE_ACTIVITY,
+    SHUFFLE
 }

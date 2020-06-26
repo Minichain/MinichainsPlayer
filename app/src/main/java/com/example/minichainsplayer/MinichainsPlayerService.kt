@@ -5,12 +5,14 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import java.io.File
 
 
 class MinichainsPlayerService : Service() {
@@ -22,10 +24,15 @@ class MinichainsPlayerService : Service() {
     private val serviceNotificationStringId = "MINICHAINS_PLAYER_SERVICE_NOTIFICATION"
     private val serviceNotificationId = 1
 
+    private var musicLocation = ""
     private var mediaPlayer: MediaPlayer? = null
     private var currentSongPath = ""
     private var currentSongTime = 0
     private var playing: Boolean = false
+    private var currentSongInteger = 0
+    private var shuffle = false
+
+    private var listOfSongs: ArrayList<SongFile>? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -45,6 +52,16 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun init() {
+        musicLocation = "/sdcard/Music/"
+//        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
+        Log.l("musicLocation: " + musicLocation)
+
+        fillPlayList()
+
+        if (listOfSongs != null && listOfSongs?.isNotEmpty()!!) {
+            currentSongPath = listOfSongs?.get(currentSongInteger)?.path.toString() + listOfSongs?.get(currentSongInteger)?.songName + "." + listOfSongs?.get(currentSongInteger)?.format
+        }
+
         minichainsPlayerBroadcastReceiver = MinichainsPlayerServiceBroadcastReceiver()
         registerMinichainsPlayerServiceBroadcastReceiver()
         createMinichainsPlayerServiceNotification()
@@ -57,12 +74,16 @@ class MinichainsPlayerService : Service() {
                 try {
                     while (!this.isInterrupted) {
                         sleep(200)
-                        if (mediaPlayer != null) {
-                            var bundle = Bundle()
-                            currentSongTime = mediaPlayer?.currentPosition!!
-                            bundle.putInt("currentSongTime", currentSongTime)
-                            bundle.putBoolean("playing", playing)
-                            sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY, bundle)
+                        updateActivityVariables()
+                        updateSongDuration()
+                        if (listOfSongs != null) {
+                            var currentSongLength = listOfSongs?.get(currentSongInteger)?.length
+                            if (currentSongLength != null) {
+                                if (currentSongLength > 0 && currentSongTime >= currentSongLength!!) {
+                                    //Song has ended. Playing next song...
+                                    next()
+                                }
+                            }
                         }
                     }
                 } catch (e: InterruptedException) {
@@ -70,6 +91,21 @@ class MinichainsPlayerService : Service() {
             }
         }
         thread.start()
+    }
+
+    private fun updateActivityVariables() {
+        if (mediaPlayer != null) {
+            var bundle = Bundle()
+            currentSongTime = mediaPlayer?.currentPosition!!
+            bundle.putInt("currentSongTime", currentSongTime)
+            bundle.putBoolean("playing", playing)
+            bundle.putString("currentSongPath", currentSongPath)
+            bundle.putInt("currentSongInteger", currentSongInteger)
+            bundle.putString("currentSongName", listOfSongs?.get(currentSongInteger)?.songName)
+            bundle.putLong("currentSongLength", listOfSongs?.get(currentSongInteger)?.length!!)
+            bundle.putBoolean("shuffle", shuffle)
+            sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY, bundle)
+        }
     }
 
     private fun play(songPath: String, currentSongTime: Int) {
@@ -87,6 +123,97 @@ class MinichainsPlayerService : Service() {
     private fun stop() {
         mediaPlayer?.pause()
         playing = false
+    }
+
+    private fun previous() {
+        if (shuffle) {
+            currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
+        } else {
+            currentSongInteger = (currentSongInteger + 1) % listOfSongs?.size!!
+        }
+        stop()
+        if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
+            this.currentSongTime = 0
+            play(listOfSongs?.get(currentSongInteger)?.path
+                    + listOfSongs?.get(currentSongInteger)?.songName
+                    + "."
+                    + listOfSongs?.get(currentSongInteger)?.format,
+                currentSongTime)
+        }
+    }
+
+    private fun next() {
+        if (shuffle) {
+            currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
+        } else {
+            currentSongInteger--
+            if (currentSongInteger < 0) {
+                currentSongInteger = listOfSongs?.size!! - 1
+            }
+        }
+        stop()
+        if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
+            this.currentSongTime = 0
+            play(listOfSongs?.get(currentSongInteger)?.path
+                    + listOfSongs?.get(currentSongInteger)?.songName
+                    + "."
+                    + listOfSongs?.get(currentSongInteger)?.format,
+                currentSongTime)
+        }
+    }
+
+    private fun updateSongDuration() {
+        if (listOfSongs?.get(currentSongInteger)?.length!!.toInt() <= 0) {
+            val metaRetriever = MediaMetadataRetriever()
+            metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path
+                    + listOfSongs?.get(currentSongInteger)?.songName
+                    + "."
+                    + listOfSongs?.get(currentSongInteger)?.format)
+            val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            var duration: Long = -1
+            if (durationString != null) {
+                duration = durationString.toLong()
+            }
+            listOfSongs?.get(currentSongInteger)?.length = duration
+        }
+    }
+
+    private fun fillPlayList() {
+        val thread: Thread = object : Thread() {
+            override fun run() {
+                val currentTimeMillis = System.currentTimeMillis()
+                fillPlayList(musicLocation)
+                Log.l("listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
+                Log.l("listOfSongs size: " + listOfSongs?.size)
+            }
+        }
+        thread.start()
+    }
+
+    private fun fillPlayList(rootPath: String) {
+        listOfSongs = ArrayList()
+        try {
+            val rootFolder = File(rootPath)
+            if (!rootFolder.exists()) {
+                return
+            }
+            val files: Array<File> = rootFolder.listFiles() //here you will get NPE if directory doesn't contains any file. Handle it like this.
+            for (file in files) {
+                if (file.isDirectory) {
+                    fillPlayList(file.path)
+                } else if (file.name.endsWith(".mp3")) {
+//                    Log.l("Song added to play list: " + file.name)
+                    val fileName = file.name.substring(0, file.name.lastIndexOf("."))
+                    val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
+                    val songFile = SongFile(rootPath, fileName, fileFormat, -1)
+                    listOfSongs?.add(songFile)
+//                    Log.l("fileList size: " + listOfSongs?.size)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(String().plus("Error loading play list: ").plus(e))
+            return
+        }
     }
 
     private fun sendBroadcastToActivity(broadcastMessage: BroadcastMessage) {
@@ -116,9 +243,7 @@ class MinichainsPlayerService : Service() {
                 if (broadcast != null) {
                     if (broadcast == BroadcastMessage.START_PLAYING.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: START_PLAYING")
-                        if (extras != null) {
-                            play(extras.getString("songPath").toString(), extras.getInt("currentSongTime"))
-                        }
+                        play(currentSongPath, currentSongTime)
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: STOP_PLAYING")
                         stop()
@@ -131,8 +256,13 @@ class MinichainsPlayerService : Service() {
                         }
                     } else if (broadcast == BroadcastMessage.PREVIOUS_SONG.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: PREVIOUS_SONG")
+                        previous()
                     } else if (broadcast == BroadcastMessage.NEXT_SONG.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: NEXT_SONG")
+                        next()
+                    } else if (broadcast == BroadcastMessage.SHUFFLE.toString()) {
+                        Log.l("MinichainsPlayerServiceLog:: NEXT_SONG")
+                        shuffle = !shuffle
                     } else {
                         Log.l("MinichainsPlayerServiceLog:: Unknown broadcast received")
                     }

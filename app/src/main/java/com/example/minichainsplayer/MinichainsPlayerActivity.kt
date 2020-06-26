@@ -36,10 +36,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     private var playing = false
     private var currentSongTime: Int = 0
     private var musicLocation = ""
+    private var currentSongPath = ""
+    private var currentSongName = ""
     private var currentSongInteger = 0
+    private var currentSongLength: Long = 0
     private var shuffle = false
-
-    private var listOfSongs: ArrayList<SongFile>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,93 +113,36 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongLengthTexView = this.findViewById(R.id.current_song_length)
         currentSongCurrentTimeTexView = this.findViewById(R.id.current_song_current_time)
 
-        musicLocation = "/sdcard/Music/"
-//        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
-        Log.l("musicLocation: " + musicLocation)
-
-        fillPlayList()
-
         initUpdateViewsThread()
-
-        updateShuffleButtonAlpha()
 
         playButton.setOnClickListener {
             if (!playing) {
+                Toast.makeText(this, "Play", Toast.LENGTH_SHORT).show()
                 sendBroadcastToService(BroadcastMessage.START_PLAYING)
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Playing", Toast.LENGTH_SHORT).show()
-                    if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
-                        playCurrentSong()
-                    }
-                } else {
-                    Toast.makeText(this, "Cannot be played", Toast.LENGTH_SHORT).show()
-                }
             } else {
-                pauseCurrentSong()
+                Toast.makeText(this, "Stop", Toast.LENGTH_SHORT).show()
+                sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
             }
         }
 
         previousButton.setOnClickListener {
             Toast.makeText(this, "Playing previous song", Toast.LENGTH_SHORT).show()
-            if (shuffle) {
-                currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
-            } else {
-                currentSongInteger = (currentSongInteger + 1) % listOfSongs?.size!!
-            }
-            sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
-            if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
-                this.currentSongTime = 0
-                playCurrentSong()
-            }
+            sendBroadcastToService(BroadcastMessage.PREVIOUS_SONG)
         }
 
         nextButton.setOnClickListener {
             Toast.makeText(this, "Playing next song", Toast.LENGTH_SHORT).show()
-            if (shuffle) {
-                currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
-            } else {
-                currentSongInteger--
-                if (currentSongInteger < 0) {
-                    currentSongInteger = listOfSongs?.size!! - 1
-                }
-            }
-            sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
-            if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
-                this.currentSongTime = 0
-                playCurrentSong()
-            }
+            sendBroadcastToService(BroadcastMessage.NEXT_SONG)
         }
 
         shuffleButton.setOnClickListener {
-            shuffle = if (shuffle) {
+            if (shuffle) {
                 Toast.makeText(this, "Shuffle disabled", Toast.LENGTH_SHORT).show()
-                false
             } else {
                 Toast.makeText(this, "Shuffle enabled", Toast.LENGTH_SHORT).show()
-                true
             }
-            updateShuffleButtonAlpha()
+            sendBroadcastToService(BroadcastMessage.SHUFFLE)
         }
-    }
-
-    private fun updateShuffleButtonAlpha() {
-        if (shuffle) {
-            shuffleButton.alpha = 1f
-        } else {
-            shuffleButton.alpha = 0.5f
-        }
-    }
-
-    private fun fillPlayList() {
-        val thread: Thread = object : Thread() {
-            override fun run() {
-                val currentTimeMillis = System.currentTimeMillis()
-                fillPlayList(musicLocation)
-                Log.l("listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
-                Log.l("listOfSongs size: " + listOfSongs?.size)
-            }
-        }
-        thread.start()
     }
 
     private fun initUpdateViewsThread() {
@@ -219,56 +163,24 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     }
 
     private fun updateViews() {
-        if (listOfSongs == null || listOfSongs?.isEmpty()!!) {
-            return
+        if (currentSongTexView.text != currentSongName) {
+            currentSongTexView.text = currentSongName
         }
 
-        if (currentSongTexView.text != listOfSongs?.get(currentSongInteger)?.songName) {
-            currentSongTexView.text = listOfSongs?.get(currentSongInteger)?.songName
-        }
-
-        currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(listOfSongs?.get(currentSongInteger)?.length)
+        currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongLength)
         currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongTime.toLong())
 
-        updateSongDuration()
-
-        if (currentSongTime >= listOfSongs?.get(currentSongInteger)?.length!!) {
-            //Song has ended. Playing next song...
-            nextButton.performClick()
-        }
 
         if (playing) {
             playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
         } else {
             playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
         }
-    }
 
-    private fun playCurrentSong() {
-        var bundle = Bundle()
-        bundle.putString("songPath", listOfSongs?.get(currentSongInteger)?.path
-                + listOfSongs?.get(currentSongInteger)?.songName
-                + "."
-                + listOfSongs?.get(currentSongInteger)?.format)
-        bundle.putInt("currentSongTime", currentSongTime)
-        sendBroadcastToService(BroadcastMessage.START_PLAYING, bundle)
-        playing = true
-        updateViews()
-    }
-
-    private fun updateSongDuration() {
-        if (listOfSongs?.get(currentSongInteger)?.length!!.toInt() <= 0) {
-            val metaRetriever = MediaMetadataRetriever()
-            metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path
-                    + listOfSongs?.get(currentSongInteger)?.songName
-                    + "."
-                    + listOfSongs?.get(currentSongInteger)?.format)
-            val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            var duration: Long = -1
-            if (durationString != null) {
-                duration = durationString.toLong()
-            }
-            listOfSongs?.get(currentSongInteger)?.length = duration
+        if (shuffle) {
+            shuffleButton.alpha = 1f
+        } else {
+            shuffleButton.alpha = 0.5f
         }
     }
 
@@ -277,32 +189,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         if (playing) {
             playing = false
             sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
-        }
-    }
-
-    private fun fillPlayList(rootPath: String) {
-        listOfSongs = ArrayList()
-        try {
-            val rootFolder = File(rootPath)
-            if (!rootFolder.exists()) {
-                return
-            }
-            val files: Array<File> = rootFolder.listFiles() //here you will get NPE if directory doesn't contains any file. Handle it like this.
-            for (file in files) {
-                if (file.isDirectory) {
-                    fillPlayList(file.path)
-                } else if (file.name.endsWith(".mp3")) {
-//                    Log.l("Song added to play list: " + file.name)
-                    val fileName = file.name.substring(0, file.name.lastIndexOf("."))
-                    val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
-                    val songFile = SongFile(rootPath, fileName, fileFormat, -1)
-                    listOfSongs?.add(songFile)
-//                    Log.l("fileList size: " + listOfSongs?.size)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(String().plus("Error loading play list: ").plus(e))
-            return
         }
     }
 
@@ -376,6 +262,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                         if (extras != null) {
                             currentSongTime = extras.getInt("currentSongTime")
                             playing = extras.getBoolean("playing")
+                            currentSongPath = extras.getString("currentSongPath").toString()
+                            currentSongInteger = extras.getInt("currentSongInteger")
+                            currentSongName = extras.getString("currentSongName").toString()
+                            currentSongLength = extras.getLong("currentSongLength")
+                            shuffle = extras.getBoolean("shuffle")
                         }
                     } else {
                         Log.l("MinichainsPlayerActivityLog:: Unknown broadcast received")
