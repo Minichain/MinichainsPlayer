@@ -17,8 +17,9 @@ import java.io.File
 
 class MinichainsPlayerService : Service() {
     private lateinit var minichainsPlayerBroadcastReceiver: MinichainsPlayerServiceBroadcastReceiver
-    private lateinit var notification: Notification
+    private lateinit var notification: NotificationCompat.Builder
     private lateinit var notificationName: CharSequence
+    private lateinit var notificationTitle: CharSequence
     private var notificationManager: NotificationManager? = null
     private var notificationManagerCompat: NotificationManagerCompat? = null
     private val serviceNotificationStringId = "MINICHAINS_PLAYER_SERVICE_NOTIFICATION"
@@ -26,6 +27,7 @@ class MinichainsPlayerService : Service() {
 
     private var musicLocation = ""
     private var mediaPlayer: MediaPlayer? = null
+    private var currentSongName = ""
     private var currentSongPath = ""
     private var currentSongTime = 0
     private var playing: Boolean = false
@@ -57,10 +59,7 @@ class MinichainsPlayerService : Service() {
         Log.l("musicLocation: " + musicLocation)
 
         fillPlayList()
-
-        if (listOfSongs != null && listOfSongs?.isNotEmpty()!!) {
-            currentSongPath = listOfSongs?.get(currentSongInteger)?.path.toString() + listOfSongs?.get(currentSongInteger)?.songName + "." + listOfSongs?.get(currentSongInteger)?.format
-        }
+        updateCurrentSongInfo()
 
         minichainsPlayerBroadcastReceiver = MinichainsPlayerServiceBroadcastReceiver()
         registerMinichainsPlayerServiceBroadcastReceiver()
@@ -74,8 +73,9 @@ class MinichainsPlayerService : Service() {
                 try {
                     while (!this.isInterrupted) {
                         sleep(200)
+                        updateCurrentSongInfo()
                         updateActivityVariables()
-                        updateSongDuration()
+                        updateNotificationTitle()
                         if (listOfSongs != null) {
                             var currentSongLength = listOfSongs?.get(currentSongInteger)?.length
                             if (currentSongLength != null) {
@@ -94,18 +94,18 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun updateActivityVariables() {
+        var bundle = Bundle()
         if (mediaPlayer != null) {
-            var bundle = Bundle()
             currentSongTime = mediaPlayer?.currentPosition!!
-            bundle.putInt("currentSongTime", currentSongTime)
-            bundle.putBoolean("playing", playing)
-            bundle.putString("currentSongPath", currentSongPath)
-            bundle.putInt("currentSongInteger", currentSongInteger)
-            bundle.putString("currentSongName", listOfSongs?.get(currentSongInteger)?.songName)
-            bundle.putLong("currentSongLength", listOfSongs?.get(currentSongInteger)?.length!!)
-            bundle.putBoolean("shuffle", shuffle)
-            sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY, bundle)
         }
+        bundle.putInt("currentSongTime", currentSongTime)
+        bundle.putBoolean("playing", playing)
+        bundle.putString("currentSongPath", currentSongPath)
+        bundle.putInt("currentSongInteger", currentSongInteger)
+        bundle.putString("currentSongName", listOfSongs?.get(currentSongInteger)?.songName)
+        bundle.putLong("currentSongLength", listOfSongs?.get(currentSongInteger)?.length!!)
+        bundle.putBoolean("shuffle", shuffle)
+        sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY, bundle)
     }
 
     private fun play(songPath: String, currentSongTime: Int) {
@@ -162,19 +162,27 @@ class MinichainsPlayerService : Service() {
         }
     }
 
-    private fun updateSongDuration() {
-        if (listOfSongs?.get(currentSongInteger)?.length!!.toInt() <= 0) {
-            val metaRetriever = MediaMetadataRetriever()
-            metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path
-                    + listOfSongs?.get(currentSongInteger)?.songName
-                    + "."
-                    + listOfSongs?.get(currentSongInteger)?.format)
-            val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            var duration: Long = -1
-            if (durationString != null) {
-                duration = durationString.toLong()
+    private fun updateCurrentSongInfo() {
+        if (listOfSongs != null && listOfSongs?.isNotEmpty()!!) {
+            currentSongName = listOfSongs?.get(currentSongInteger)?.songName.toString()
+            currentSongPath = String().plus(listOfSongs?.get(currentSongInteger)?.path.toString())
+                .plus(listOfSongs?.get(currentSongInteger)?.songName)
+                .plus(".")
+                .plus(listOfSongs?.get(currentSongInteger)?.format)
+
+            if (listOfSongs?.get(currentSongInteger)?.length!!.toInt() <= 0) {
+                val metaRetriever = MediaMetadataRetriever()
+                metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path
+                        + listOfSongs?.get(currentSongInteger)?.songName
+                        + "."
+                        + listOfSongs?.get(currentSongInteger)?.format)
+                val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                var duration: Long = -1
+                if (durationString != null) {
+                    duration = durationString.toLong()
+                }
+                listOfSongs?.get(currentSongInteger)?.length = duration
             }
-            listOfSongs?.get(currentSongInteger)?.length = duration
         }
     }
 
@@ -289,7 +297,7 @@ class MinichainsPlayerService : Service() {
         //Service notification
         notificationName = resources.getString(R.string.app_name)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_HIGH
+            val importance = NotificationManager.IMPORTANCE_LOW
             val channel = NotificationChannel(serviceNotificationStringId, notificationName, importance).apply {
                 description = "descriptionText"
             }
@@ -322,19 +330,28 @@ class MinichainsPlayerService : Service() {
         nextIntent.action = BroadcastMessage.NEXT_SONG.toString()
         val nextPendingIntent = PendingIntent.getBroadcast(this, 0, nextIntent, 0)
 
+        notificationTitle = currentSongName
         notification = NotificationCompat.Builder(this, serviceNotificationStringId)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setSmallIcon(R.drawable.baseline_music_note_24)
-            .setContentTitle(notificationName)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentTitle(notificationTitle)
 //            .setContentIntent(pendingIntent)
             .setAutoCancel(false)
             .addAction(R.drawable.baseline_skip_previous_white_18, "Previous", previousPendingIntent)
             .addAction(R.drawable.baseline_play_arrow_white_18, "Play/Stop", playStopPendingIntent)
             .addAction(R.drawable.baseline_skip_next_white_18, "Next", nextPendingIntent)
-            .build()
 
-        notificationManagerCompat?.notify(serviceNotificationId, notification)
-        this.startForeground(1, notification)
+        notificationManagerCompat?.notify(serviceNotificationId, notification.build())
+        this.startForeground(1, notification.build())
+    }
+
+    private fun updateNotificationTitle() {
+        if (notificationTitle != currentSongName) {
+            notificationTitle = currentSongName
+            notification.setContentTitle(notificationTitle)
+            notificationManagerCompat?.notify(serviceNotificationId, notification.build())
+            this.startForeground(1, notification.build())
+        }
     }
 
     private fun removeMinichainsPlayerServiceNotification() {

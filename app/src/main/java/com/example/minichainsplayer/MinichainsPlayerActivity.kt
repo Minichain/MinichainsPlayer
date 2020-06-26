@@ -6,8 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.media.MediaMetadataRetriever
-import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
@@ -19,7 +17,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import java.io.File
 import kotlin.system.exitProcess
 
 class MinichainsPlayerActivity : AppCompatActivity() {
@@ -117,10 +114,10 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
         playButton.setOnClickListener {
             if (!playing) {
-                Toast.makeText(this, "Play", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
                 sendBroadcastToService(BroadcastMessage.START_PLAYING)
             } else {
-                Toast.makeText(this, "Stop", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
                 sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
             }
         }
@@ -170,7 +167,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongLength)
         currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongTime.toLong())
 
-
         if (playing) {
             playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
         } else {
@@ -181,14 +177,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             shuffleButton.alpha = 1f
         } else {
             shuffleButton.alpha = 0.5f
-        }
-    }
-
-    private fun pauseCurrentSong() {
-        Toast.makeText(this, "Paused", Toast.LENGTH_SHORT).show()
-        if (playing) {
-            playing = false
-            sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
         }
     }
 
