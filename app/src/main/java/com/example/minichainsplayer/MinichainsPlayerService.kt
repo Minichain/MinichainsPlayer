@@ -10,12 +10,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
-import android.media.session.MediaController
-import android.media.session.MediaSession
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.view.KeyEvent
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import java.io.File
@@ -42,6 +41,8 @@ class MinichainsPlayerService : Service() {
 
     private var listOfSongs: ArrayList<SongFile>? = null
     private var listOfSongsPlayed: ArrayList<Int>? = null
+
+    private lateinit var mSession: MediaSessionCompat
 
     override fun onCreate() {
         super.onCreate()
@@ -72,6 +73,36 @@ class MinichainsPlayerService : Service() {
         registerMinichainsPlayerServiceBroadcastReceiver()
         createMinichainsPlayerServiceNotification()
         initUpdateActivityThread()
+
+        initMediaSessions()
+    }
+
+    private fun initMediaSessions() {
+        mSession = MediaSessionCompat(applicationContext, MinichainsPlayerService::class.java.simpleName)
+        mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
+        mSession.setMediaButtonReceiver(null)
+        var mStateBuilder = PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY)
+        mSession.setPlaybackState(mStateBuilder.build())
+        mSession.setCallback(object : MediaSessionCompat.Callback() {
+            //callback code is here.
+            override fun onPlay() {
+//                Log.l("onPlay")
+                if (!playing) {
+                    play(currentSongPath, currentSongTime)
+                } else {
+                    stop()
+                }
+            }
+
+            override fun onStop() {
+//                Log.l("onStop")
+            }
+
+            override fun onPause() {
+//                Log.l("onPause")
+            }
+        })
+        mSession.isActive = true
     }
 
     private fun initUpdateActivityThread() {
