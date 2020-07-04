@@ -32,7 +32,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
     private var playing = false
     private var currentSongTime: Int = 0
-    private var musicLocation = ""
     private var currentSongPath = ""
     private var currentSongName = ""
     private var currentSongInteger = 0
@@ -113,12 +112,14 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         initUpdateViewsThread()
 
         playButton.setOnClickListener {
-            if (!playing) {
-                Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
-                sendBroadcastToService(BroadcastMessage.START_PLAYING)
-            } else {
-                Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
-                sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
+            if (currentSongName != null && currentSongName != "") {
+                if (!playing) {
+                    Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
+                    sendBroadcastToService(BroadcastMessage.START_PLAYING)
+                } else {
+                    Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
+                    sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
+                }
             }
         }
 

@@ -1,15 +1,21 @@
 package com.example.minichainsplayer
 
-import android.app.*
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
+import android.media.session.MediaController
+import android.media.session.MediaSession
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import java.io.File
@@ -35,6 +41,7 @@ class MinichainsPlayerService : Service() {
     private var shuffle = false
 
     private var listOfSongs: ArrayList<SongFile>? = null
+    private var listOfSongsPlayed: ArrayList<Int>? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -54,8 +61,8 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun init() {
-        musicLocation = "/sdcard/Music/"
-//        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
+//        musicLocation = "/sdcard/Music/"
+        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
         Log.l("musicLocation: " + musicLocation)
 
         fillPlayList()
@@ -68,18 +75,19 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun initUpdateActivityThread() {
+        val sleepTime = 100;
         val thread: Thread = object : Thread() {
             override fun run() {
                 try {
                     while (!this.isInterrupted) {
-                        sleep(200)
+                        sleep(sleepTime.toLong())
                         updateCurrentSongInfo()
                         updateActivityVariables()
                         updateNotificationTitle()
-                        if (listOfSongs != null) {
+                        if (listOfSongs != null && currentSongInteger < listOfSongs?.size!!) {
                             var currentSongLength = listOfSongs?.get(currentSongInteger)?.length
                             if (currentSongLength != null) {
-                                if (currentSongLength > 0 && currentSongTime >= currentSongLength!!) {
+                                if (currentSongLength > 0 && currentSongTime >= (currentSongLength!! - sleepTime.toLong())) {
                                     //Song has ended. Playing next song...
                                     next()
                                 }
@@ -102,8 +110,10 @@ class MinichainsPlayerService : Service() {
         bundle.putBoolean("playing", playing)
         bundle.putString("currentSongPath", currentSongPath)
         bundle.putInt("currentSongInteger", currentSongInteger)
-        bundle.putString("currentSongName", listOfSongs?.get(currentSongInteger)?.songName)
-        bundle.putLong("currentSongLength", listOfSongs?.get(currentSongInteger)?.length!!)
+        if (listOfSongs != null && currentSongInteger < listOfSongs?.size!!) {
+            bundle.putString("currentSongName", listOfSongs?.get(currentSongInteger)?.songName)
+            bundle.putLong("currentSongLength", listOfSongs?.get(currentSongInteger)?.length!!)
+        }
         bundle.putBoolean("shuffle", shuffle)
         sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY, bundle)
     }
@@ -229,7 +239,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun sendBroadcastToActivity(broadcastMessage: BroadcastMessage, bundle: Bundle?) {
-        Log.l("MinichainsPlayerServiceLog:: sending broadcast $broadcastMessage")
+//        Log.l("MinichainsPlayerServiceLog:: sending broadcast $broadcastMessage")
         try {
             val broadCastIntent = Intent()
             broadCastIntent.action = broadcastMessage.toString()
@@ -271,8 +281,12 @@ class MinichainsPlayerService : Service() {
                     } else if (broadcast == BroadcastMessage.SHUFFLE.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: NEXT_SONG")
                         shuffle = !shuffle
+                    } else if (broadcast == Intent.ACTION_MEDIA_BUTTON) {
+                        Log.l("MinichainsPlayerServiceLog:: ACTION_MEDIA_BUTTON")
+                    } else if (broadcast == Intent.ACTION_HEADSET_PLUG) {
+                        Log.l("MinichainsPlayerServiceLog:: ACTION_HEADSET_PLUG")
                     } else {
-                        Log.l("MinichainsPlayerServiceLog:: Unknown broadcast received")
+//                        Log.l("MinichainsPlayerServiceLog:: Unknown broadcast received")
                     }
                 }
             } catch (ex: Exception) {
@@ -287,6 +301,10 @@ class MinichainsPlayerService : Service() {
             for (i in BroadcastMessage.values().indices) {
                 intentFilter.addAction(BroadcastMessage.values()[i].toString())
             }
+
+//            intentFilter.addAction(Intent.ACTION_MEDIA_BUTTON)
+//            intentFilter.addAction(Intent.ACTION_HEADSET_PLUG)
+
             registerReceiver(minichainsPlayerBroadcastReceiver, intentFilter)
         } catch (ex: Exception) {
             ex.printStackTrace()
