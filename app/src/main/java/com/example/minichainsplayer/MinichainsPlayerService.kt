@@ -79,6 +79,8 @@ class MinichainsPlayerService : Service() {
         initMediaSessions()
     }
 
+    var mediaSessionTimer = Timer()
+
     private fun initMediaSessions() {
         mediaSession = MediaSessionCompat(applicationContext, MinichainsPlayerService::class.java.simpleName)
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
@@ -88,28 +90,28 @@ class MinichainsPlayerService : Service() {
         mediaSession.setCallback(object : MediaSessionCompat.Callback() {
             //callback code is here.
             override fun onPlay() {
-                if (timesPressingMediaButton == 0) {
-                    Timer().schedule(object : TimerTask() {
-                        override fun run() {
-                            Thread(Runnable {
-                                Log.l("timesPressingMediaButton: $timesPressingMediaButton")
-                                if (timesPressingMediaButton == 1) {
-                                    if (!playing) {
-                                        play(currentSongPath, currentSongTime)
-                                    } else {
-                                        stopPlaying()
-                                    }
-                                } else if (timesPressingMediaButton == 2) {
-                                    next()
-                                } else if (timesPressingMediaButton >= 3) {
-                                    previous()
+                mediaSessionTimer.cancel()
+                mediaSessionTimer = Timer()
+                mediaSessionTimer.schedule(object : TimerTask() {
+                    override fun run() {
+                        Thread(Runnable {
+                            Log.l("timesPressingMediaButton: $timesPressingMediaButton")
+                            if (timesPressingMediaButton == 1) {
+                                if (!playing) {
+                                    play(currentSongPath, currentSongTime)
+                                } else {
+                                    stopPlaying()
                                 }
+                            } else if (timesPressingMediaButton == 2) {
+                                next()
+                            } else if (timesPressingMediaButton >= 3) {
+                                previous()
+                            }
 
-                                timesPressingMediaButton = 0
-                            }).start()
-                        }
-                    }, 750)
-                }
+                            timesPressingMediaButton = 0
+                        }).start()
+                    }
+                }, 450)
 
                 Log.l("timesPressingMediaButton++")
                 timesPressingMediaButton++
@@ -128,15 +130,6 @@ class MinichainsPlayerService : Service() {
                         updateCurrentSongInfo()
                         updateActivityVariables()
                         updateNotificationTitle()
-                        if (listOfSongs != null && currentSongInteger < listOfSongs?.size!!) {
-                            var currentSongLength = listOfSongs?.get(currentSongInteger)?.length
-                            if (currentSongLength != null) {
-                                if (currentSongLength > 0 && currentSongTime >= (currentSongLength!! - sleepTime.toLong())) {
-                                    //Song has ended. Playing next song...
-                                    next()
-                                }
-                            }
-                        }
                     }
                 } catch (e: InterruptedException) {
                 }
@@ -166,6 +159,9 @@ class MinichainsPlayerService : Service() {
         if (!playing) {
             currentSongPath = songPath
             mediaPlayer = MediaPlayer()
+            mediaPlayer?.setOnCompletionListener {
+                next()
+            }
             mediaPlayer?.setDataSource(songPath)
             mediaPlayer?.prepare()
             mediaPlayer?.seekTo(currentSongTime)
