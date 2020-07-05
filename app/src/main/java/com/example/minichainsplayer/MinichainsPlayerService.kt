@@ -18,7 +18,8 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import java.io.File
-
+import java.util.*
+import kotlin.collections.ArrayList
 
 class MinichainsPlayerService : Service() {
     private lateinit var minichainsPlayerBroadcastReceiver: MinichainsPlayerServiceBroadcastReceiver
@@ -42,7 +43,8 @@ class MinichainsPlayerService : Service() {
     private var listOfSongs: ArrayList<SongFile>? = null
     private var listOfSongsPlayed: ArrayList<Int>? = null
 
-    private lateinit var mSession: MediaSessionCompat
+    private lateinit var mediaSession: MediaSessionCompat
+    private var timesPressingMediaButton = 0
 
     override fun onCreate() {
         super.onCreate()
@@ -78,35 +80,46 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun initMediaSessions() {
-        mSession = MediaSessionCompat(applicationContext, MinichainsPlayerService::class.java.simpleName)
-        mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
-        mSession.setMediaButtonReceiver(null)
+        mediaSession = MediaSessionCompat(applicationContext, MinichainsPlayerService::class.java.simpleName)
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
+        mediaSession.setMediaButtonReceiver(null)
         var mStateBuilder = PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY)
-        mSession.setPlaybackState(mStateBuilder.build())
-        mSession.setCallback(object : MediaSessionCompat.Callback() {
+        mediaSession.setPlaybackState(mStateBuilder.build())
+        mediaSession.setCallback(object : MediaSessionCompat.Callback() {
             //callback code is here.
             override fun onPlay() {
-//                Log.l("onPlay")
-                if (!playing) {
-                    play(currentSongPath, currentSongTime)
-                } else {
-                    stop()
+                if (timesPressingMediaButton == 0) {
+                    Timer().schedule(object : TimerTask() {
+                        override fun run() {
+                            Thread(Runnable {
+                                Log.l("timesPressingMediaButton: $timesPressingMediaButton")
+                                if (timesPressingMediaButton == 1) {
+                                    if (!playing) {
+                                        play(currentSongPath, currentSongTime)
+                                    } else {
+                                        stopPlaying()
+                                    }
+                                } else if (timesPressingMediaButton == 2) {
+                                    next()
+                                } else if (timesPressingMediaButton >= 3) {
+                                    previous()
+                                }
+
+                                timesPressingMediaButton = 0
+                            }).start()
+                        }
+                    }, 750)
                 }
-            }
 
-            override fun onStop() {
-//                Log.l("onStop")
-            }
-
-            override fun onPause() {
-//                Log.l("onPause")
+                Log.l("timesPressingMediaButton++")
+                timesPressingMediaButton++
             }
         })
-        mSession.isActive = true
+        mediaSession.isActive = true
     }
 
     private fun initUpdateActivityThread() {
-        val sleepTime = 100;
+        val sleepTime = 100
         val thread: Thread = object : Thread() {
             override fun run() {
                 try {
@@ -161,7 +174,7 @@ class MinichainsPlayerService : Service() {
         }
     }
 
-    private fun stop() {
+    private fun stopPlaying() {
         mediaPlayer?.pause()
         playing = false
     }
@@ -172,7 +185,7 @@ class MinichainsPlayerService : Service() {
         } else {
             currentSongInteger = (currentSongInteger + 1) % listOfSongs?.size!!
         }
-        stop()
+        stopPlaying()
         if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
             this.currentSongTime = 0
             play(listOfSongs?.get(currentSongInteger)?.path
@@ -192,7 +205,7 @@ class MinichainsPlayerService : Service() {
                 currentSongInteger = listOfSongs?.size!! - 1
             }
         }
-        stop()
+        stopPlaying()
         if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
             this.currentSongTime = 0
             play(listOfSongs?.get(currentSongInteger)?.path
@@ -295,13 +308,13 @@ class MinichainsPlayerService : Service() {
                         play(currentSongPath, currentSongTime)
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: STOP_PLAYING")
-                        stop()
+                        stopPlaying()
                     } else if (broadcast == BroadcastMessage.START_STOP_PLAYING_NOTIFICATION.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: START_STOP_PLAYING_NOTIFICATION")
                         if (!playing) {
                             play(currentSongPath, currentSongTime)
                         } else {
-                            stop()
+                            stopPlaying()
                         }
                     } else if (broadcast == BroadcastMessage.PREVIOUS_SONG.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: PREVIOUS_SONG")
