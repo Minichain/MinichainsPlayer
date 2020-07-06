@@ -4,10 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.os.Build
@@ -46,6 +43,8 @@ class MinichainsPlayerService : Service() {
     private lateinit var mediaSession: MediaSessionCompat
     private var timesPressingMediaButton = 0
 
+    private lateinit var dataBaseHelper: FeedReaderDbHelper
+
     override fun onCreate() {
         super.onCreate()
         Log.l("MinichainsPlayerServiceLog:: onCreate service")
@@ -64,9 +63,11 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun init() {
-//        musicLocation = "/sdcard/Music/"
-        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
+        musicLocation = "/sdcard/Music/"
+//        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
         Log.l("musicLocation: " + musicLocation)
+
+        dataBaseHelper = FeedReaderDbHelper(this)
 
         fillPlayList()
         updateCurrentSongInfo()
@@ -266,6 +267,21 @@ class MinichainsPlayerService : Service() {
                     val songFile = SongFile(rootPath, fileName, fileFormat, -1)
                     listOfSongs?.add(songFile)
 //                    Log.l("fileList size: " + listOfSongs?.size)
+
+
+//                    try {
+//                        val dataBase = dataBaseHelper.writableDatabase
+//                        val values = ContentValues().apply {
+//                            put(FeedReaderContract.FeedEntry.COLUMN_PATH, rootPath)
+//                            put(FeedReaderContract.FeedEntry.COLUMN_SONG, fileName)
+//                            put(FeedReaderContract.FeedEntry.COLUMN_FORMAT, fileFormat)
+//                            put(FeedReaderContract.FeedEntry.COLUMN_LENGTH, -1)
+//                        }
+//                        val newRowId = dataBase?.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
+//                    } catch (e: Exception) {
+//
+//                    }
+
                 }
             }
         } catch (e: Exception) {
