@@ -7,5 +7,6 @@ enum class BroadcastMessage {
     PREVIOUS_SONG,
     NEXT_SONG,
     UPDATE_ACTIVITY,
-    SHUFFLE
+    SHUFFLE,
+    SET_CURRENT_SONG_TIME
 }

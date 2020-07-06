@@ -122,7 +122,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun initUpdateActivityThread() {
-        val sleepTime = 100
+        val sleepTime = 200
         val thread: Thread = object : Thread() {
             override fun run() {
                 try {
@@ -337,6 +337,12 @@ class MinichainsPlayerService : Service() {
                     } else if (broadcast == BroadcastMessage.SHUFFLE.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: NEXT_SONG")
                         shuffle = !shuffle
+                    } else if (broadcast == BroadcastMessage.SET_CURRENT_SONG_TIME.toString()) {
+                        Log.l("MinichainsPlayerServiceLog:: SET_CURRENT_SONG_TIME")
+                        if (extras != null) {
+                            currentSongTime = extras.getInt("currentSongTime")
+                            mediaPlayer?.seekTo(currentSongTime)
+                        }
                     } else if (broadcast == Intent.ACTION_MEDIA_BUTTON) {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_MEDIA_BUTTON")
                     } else if (broadcast == Intent.ACTION_HEADSET_PLUG) {

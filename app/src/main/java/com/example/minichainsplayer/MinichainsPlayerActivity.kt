@@ -12,6 +12,7 @@ import android.os.Process
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageButton
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -29,6 +30,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     lateinit var currentSongTexView: TextView
     lateinit var currentSongLengthTexView: TextView
     lateinit var currentSongCurrentTimeTexView: TextView
+    lateinit var currentSongTimeBarSeekBar: SeekBar
 
     private var playing = false
     private var currentSongTime: Int = 0
@@ -108,6 +110,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongTexView.isSelected = true
         currentSongLengthTexView = this.findViewById(R.id.current_song_length)
         currentSongCurrentTimeTexView = this.findViewById(R.id.current_song_current_time)
+        currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar)
 
         initUpdateViewsThread()
 
@@ -141,6 +144,24 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             }
             sendBroadcastToService(BroadcastMessage.SHUFFLE)
         }
+
+        currentSongTimeBarSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
+            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                var bundle = Bundle()
+                currentSongTime = ((currentSongTimeBarSeekBar.progress.toDouble() / 100.0) * currentSongLength.toDouble()).toInt()
+                bundle.putInt("currentSongTime", currentSongTime)
+                sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
+            }
+        })
     }
 
     private fun initUpdateViewsThread() {
@@ -165,8 +186,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             currentSongTexView.text = currentSongName
         }
 
-        currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongLength)
         currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongTime.toLong())
+        currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongLength)
+        if (currentSongLength > 0) {
+            currentSongTimeBarSeekBar.progress = ((currentSongTime.toFloat()  / currentSongLength.toFloat()) * 100f).toInt()
+        }
 
         if (playing) {
             playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
