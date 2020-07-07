@@ -42,15 +42,31 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         checkPermissions()
-        init()
     }
 
     private fun checkPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             val permissions = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-            ActivityCompat.requestPermissions(this, permissions, 0) //Check the requestCode later
+            ActivityCompat.requestPermissions(this, permissions, 1) //Check the requestCode later
+        } else {
+            init()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.l("onRequestPermissionsResult, requestCode: $requestCode, permissions: $permissions, grantResults: $grantResults")
+        when (requestCode) {
+            1 -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    init()
+                } else {
+                    closeApp()
+                }
+            } else -> {
+
+            }
         }
     }
 
@@ -85,6 +101,9 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     }
 
     private fun init() {
+        Log.l("Init Activity!")
+
+        setContentView(R.layout.activity_main)
         val serviceIntent = Intent(applicationContext, MinichainsPlayerService::class.java)
 
         //Start service:
@@ -113,6 +132,8 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar)
 
         initUpdateViewsThread()
+
+        registerMinichainsPlayerActivityBroadcastReceiver()
 
         playButton.setOnClickListener {
             if (currentSongName != null && currentSongName != "") {
