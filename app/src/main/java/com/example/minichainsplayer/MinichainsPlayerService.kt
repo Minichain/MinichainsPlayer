@@ -241,7 +241,9 @@ class MinichainsPlayerService : Service() {
         val thread: Thread = object : Thread() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
+                listOfSongs = ArrayList()
                 fillPlayList(musicLocation)
+//                loadSongListFromDataBase()
                 Log.l("listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
                 Log.l("listOfSongs size: " + listOfSongs?.size)
             }
@@ -250,7 +252,6 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun fillPlayList(rootPath: String) {
-        listOfSongs = ArrayList()
         try {
             val rootFolder = File(rootPath)
             if (!rootFolder.exists()) {
@@ -267,27 +268,74 @@ class MinichainsPlayerService : Service() {
                     val songFile = SongFile(rootPath, fileName, fileFormat, -1)
                     listOfSongs?.add(songFile)
 //                    Log.l("fileList size: " + listOfSongs?.size)
-
-
-//                    try {
-//                        val dataBase = dataBaseHelper.writableDatabase
-//                        val values = ContentValues().apply {
-//                            put(FeedReaderContract.FeedEntry.COLUMN_PATH, rootPath)
-//                            put(FeedReaderContract.FeedEntry.COLUMN_SONG, fileName)
-//                            put(FeedReaderContract.FeedEntry.COLUMN_FORMAT, fileFormat)
-//                            put(FeedReaderContract.FeedEntry.COLUMN_LENGTH, -1)
-//                        }
-//                        val newRowId = dataBase?.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
-//                    } catch (e: Exception) {
-//
-//                    }
-
+                    insertOrUpdateSongInDataBase(rootPath, fileName, fileFormat)
                 }
             }
+
         } catch (e: Exception) {
             Log.e(String().plus("Error loading play list: ").plus(e))
             return
         }
+    }
+
+    private fun insertOrUpdateSongInDataBase(rootPath: String, fileName: String, fileFormat: String) {
+        try {
+            val dataBase = dataBaseHelper.writableDatabase
+
+            if (dataBase != null) {
+                val values = ContentValues().apply {
+                    put(FeedReaderContract.FeedEntry.COLUMN_PATH, rootPath)
+                    put(FeedReaderContract.FeedEntry.COLUMN_SONG, fileName)
+                    put(FeedReaderContract.FeedEntry.COLUMN_FORMAT, fileFormat)
+                    put(FeedReaderContract.FeedEntry.COLUMN_LENGTH, -1)
+                }
+
+
+                if (!isSongInDataBase(fileName)) {
+                    val newRowId = dataBase?.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
+                    Log.l("DataBaseLog: Song '$fileName' inserted into the database.")
+                } else {
+                    val newRowId = dataBase?.update(FeedReaderContract.FeedEntry.TABLE_NAME, values, FeedReaderContract.FeedEntry.COLUMN_SONG + " = '" + fileName + "'", null)
+                    Log.l("DataBaseLog: Song '$fileName' is already in the database. Updating it.")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DataBaseLog: Error inserting song '$fileName' into database.")
+        }
+    }
+
+    private fun isSongInDataBase(songName: String): Boolean {
+        try {
+            val dataBase = dataBaseHelper.writableDatabase
+            val cursor = dataBase.rawQuery( "SELECT COUNT(song) FROM songList WHERE song = '$songName'", null);
+            cursor.moveToFirst()
+            if (cursor.getInt(0) != 0) {
+                cursor.close()
+                return true
+            }
+        } catch (e: Exception) {
+            return false
+        }
+        return false
+    }
+
+    private fun loadSongListFromDataBase() {
+        val dataBase = dataBaseHelper.writableDatabase
+        val cursor = dataBase.rawQuery("SELECT * FROM songList", null);
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast) {
+                val path = cursor.getString(cursor.getColumnIndex("path"))
+                val songName = cursor.getString(cursor.getColumnIndex("song"))
+                val format = cursor.getString(cursor.getColumnIndex("format"))
+                Log.l("loadSongListFromDataBase: path: $path")
+                Log.l("loadSongListFromDataBase: songName: $songName")
+                Log.l("loadSongListFromDataBase: format: $format")
+                val songFile = SongFile(path, songName, format, -1)
+                listOfSongs?.add(songFile)
+                cursor.moveToNext()
+            }
+        }
+        cursor.close()
     }
 
     private fun sendBroadcastToActivity(broadcastMessage: BroadcastMessage) {

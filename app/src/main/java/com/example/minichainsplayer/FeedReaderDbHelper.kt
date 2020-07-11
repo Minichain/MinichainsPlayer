@@ -21,7 +21,7 @@ private val SQL_CREATE_ENTRIES = "CREATE TABLE ${FeedReaderContract.FeedEntry.TA
         "${FeedReaderContract.FeedEntry.COLUMN_PATH} TEXT," +
         "${FeedReaderContract.FeedEntry.COLUMN_SONG} TEXT," +
         "${FeedReaderContract.FeedEntry.COLUMN_FORMAT} TEXT," +
-        "${FeedReaderContract.FeedEntry.COLUMN_LENGTH} TEXT,"
+        "${FeedReaderContract.FeedEntry.COLUMN_LENGTH} TEXT)"
 
 private val SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS ${FeedReaderContract.FeedEntry.TABLE_NAME}"
 
