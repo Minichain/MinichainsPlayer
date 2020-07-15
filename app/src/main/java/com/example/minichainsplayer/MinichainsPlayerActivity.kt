@@ -31,6 +31,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     lateinit var currentSongLengthTexView: TextView
     lateinit var currentSongCurrentTimeTexView: TextView
     lateinit var currentSongTimeBarSeekBar: SeekBar
+    lateinit var currentSongIntegerTextView: TextView
 
     private var playing = false
     private var currentSongTime: Int = 0
@@ -38,6 +39,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     private var currentSongName = ""
     private var currentSongInteger = 0
     private var currentSongLength: Long = 0
+    private var listOfSongsSize = 0
     private var shuffle = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,6 +132,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongLengthTexView = this.findViewById(R.id.current_song_length)
         currentSongCurrentTimeTexView = this.findViewById(R.id.current_song_current_time)
         currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar)
+        currentSongIntegerTextView = this.findViewById(R.id.current_song_integer)
 
         initUpdateViewsThread()
 
@@ -224,6 +227,8 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         } else {
             shuffleButton.alpha = 0.5f
         }
+
+        currentSongIntegerTextView.text = String().plus(currentSongInteger.plus(1).toString()).plus("/").plus(listOfSongsSize.toString())
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -300,6 +305,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                             currentSongInteger = extras.getInt("currentSongInteger")
                             currentSongName = extras.getString("currentSongName").toString()
                             currentSongLength = extras.getLong("currentSongLength")
+                            listOfSongsSize = extras.getInt("listOfSongsSize")
                             shuffle = extras.getBoolean("shuffle")
                         }
                     } else {

@@ -14,6 +14,11 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_FORMAT
+import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_LENGTH
+import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_PATH
+import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_SONG
+import com.example.minichainsplayer.FeedReaderContract.FeedEntry.TABLE_NAME
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -75,6 +80,7 @@ class MinichainsPlayerService : Service() {
         minichainsPlayerBroadcastReceiver = MinichainsPlayerServiceBroadcastReceiver()
         registerMinichainsPlayerServiceBroadcastReceiver()
         createMinichainsPlayerServiceNotification()
+
         initUpdateActivityThread()
 
         initMediaSessions()
@@ -151,6 +157,7 @@ class MinichainsPlayerService : Service() {
         if (listOfSongs != null && currentSongInteger < listOfSongs?.size!!) {
             bundle.putString("currentSongName", listOfSongs?.get(currentSongInteger)?.songName)
             bundle.putLong("currentSongLength", listOfSongs?.get(currentSongInteger)?.length!!)
+            bundle.putInt("listOfSongsSize", listOfSongs?.size!!)
         }
         bundle.putBoolean("shuffle", shuffle)
         sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY, bundle)
@@ -176,7 +183,7 @@ class MinichainsPlayerService : Service() {
         playing = false
     }
 
-    private fun previous() {
+    private fun next() {
         if (shuffle) {
             currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
         } else {
@@ -193,7 +200,7 @@ class MinichainsPlayerService : Service() {
         }
     }
 
-    private fun next() {
+    private fun previous() {
         if (shuffle) {
             currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
         } else {
@@ -242,8 +249,8 @@ class MinichainsPlayerService : Service() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
                 listOfSongs = ArrayList()
-                fillPlayList(musicLocation)
-//                loadSongListFromDataBase()
+                fillDataBase(musicLocation)
+                loadSongListFromDataBase()
                 Log.l("listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
                 Log.l("listOfSongs size: " + listOfSongs?.size)
             }
@@ -251,7 +258,7 @@ class MinichainsPlayerService : Service() {
         thread.start()
     }
 
-    private fun fillPlayList(rootPath: String) {
+    private fun fillDataBase(rootPath: String) {
         try {
             val rootFolder = File(rootPath)
             if (!rootFolder.exists()) {
@@ -260,13 +267,12 @@ class MinichainsPlayerService : Service() {
             val files: Array<File> = rootFolder.listFiles() //here you will get NPE if directory doesn't contains any file. Handle it like this.
             for (file in files) {
                 if (file.isDirectory) {
-                    fillPlayList(file.path)
+                    fillDataBase(file.path)
                 } else if (file.name.endsWith(".mp3")) {
 //                    Log.l("Song added to play list: " + file.name)
                     val fileName = file.name.substring(0, file.name.lastIndexOf("."))
                     val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
                     val songFile = SongFile(rootPath, fileName, fileFormat, -1)
-                    listOfSongs?.add(songFile)
 //                    Log.l("fileList size: " + listOfSongs?.size)
                     insertOrUpdateSongInDataBase(rootPath, fileName, fileFormat)
                 }
@@ -279,35 +285,40 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun insertOrUpdateSongInDataBase(rootPath: String, fileName: String, fileFormat: String) {
+        var newFileName = fileName
+        if (fileName.contains("'")) {
+            newFileName = fileName.replace("'", "_")
+        }
         try {
             val dataBase = dataBaseHelper.writableDatabase
 
             if (dataBase != null) {
                 val values = ContentValues().apply {
-                    put(FeedReaderContract.FeedEntry.COLUMN_PATH, rootPath)
-                    put(FeedReaderContract.FeedEntry.COLUMN_SONG, fileName)
-                    put(FeedReaderContract.FeedEntry.COLUMN_FORMAT, fileFormat)
-                    put(FeedReaderContract.FeedEntry.COLUMN_LENGTH, -1)
+                    put(COLUMN_PATH, rootPath)
+                    put(COLUMN_SONG, newFileName)
+                    put(COLUMN_FORMAT, fileFormat)
+                    put(COLUMN_LENGTH, -1)
                 }
 
-
-                if (!isSongInDataBase(fileName)) {
-                    val newRowId = dataBase?.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
-                    Log.l("DataBaseLog: Song '$fileName' inserted into the database.")
+                if (!isSongInDataBase(newFileName)) {
+                    val newRowId = dataBase?.insert(TABLE_NAME, null, values)
+                    Log.l("DataBaseLog: Song '$newFileName' inserted into the database.")
                 } else {
-                    val newRowId = dataBase?.update(FeedReaderContract.FeedEntry.TABLE_NAME, values, FeedReaderContract.FeedEntry.COLUMN_SONG + " = '" + fileName + "'", null)
-                    Log.l("DataBaseLog: Song '$fileName' is already in the database. Updating it.")
+                    val newRowId = dataBase?.update(TABLE_NAME, values, COLUMN_SONG + " = '" + newFileName + "'", null)
+                    Log.l("DataBaseLog: Song '$newFileName' is already in the database. Updating it.")
                 }
             }
         } catch (e: Exception) {
-            Log.e("DataBaseLog: Error inserting song '$fileName' into database.")
+            Log.e("DataBaseLog: Error inserting song '$newFileName' into database.")
         }
     }
 
     private fun isSongInDataBase(songName: String): Boolean {
+        Log.l("isSongInDataBase: songName: " + songName)
         try {
             val dataBase = dataBaseHelper.writableDatabase
-            val cursor = dataBase.rawQuery( "SELECT COUNT(song) FROM songList WHERE song = '$songName'", null);
+            val cursor = dataBase.rawQuery( "SELECT COUNT($COLUMN_SONG) " +
+                    "FROM $TABLE_NAME WHERE $COLUMN_SONG = '$songName'", null);
             cursor.moveToFirst()
             if (cursor.getInt(0) != 0) {
                 cursor.close()
@@ -321,11 +332,11 @@ class MinichainsPlayerService : Service() {
 
     private fun loadSongListFromDataBase() {
         val dataBase = dataBaseHelper.writableDatabase
-        val cursor = dataBase.rawQuery("SELECT * FROM songList", null);
+        val cursor = dataBase.rawQuery("SELECT * FROM $TABLE_NAME ORDER BY $COLUMN_SONG ASC", null);
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast) {
                 val path = cursor.getString(cursor.getColumnIndex("path"))
-                val songName = cursor.getString(cursor.getColumnIndex("song"))
+                val songName = cursor.getString(cursor.getColumnIndex("song")).replace("_", "'")
                 val format = cursor.getString(cursor.getColumnIndex("format"))
                 Log.l("loadSongListFromDataBase: path: $path")
                 Log.l("loadSongListFromDataBase: songName: $songName")
@@ -355,6 +366,10 @@ class MinichainsPlayerService : Service() {
             ex.printStackTrace()
         }
     }
+
+    /**
+     * BROADCAST RECEIVER
+     **/
 
     inner class MinichainsPlayerServiceBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -420,6 +435,10 @@ class MinichainsPlayerService : Service() {
             ex.printStackTrace()
         }
     }
+
+    /**
+     * SERVICE NOTIFICATION
+     **/
 
     private fun createMinichainsPlayerServiceNotification() {
         //Service notification
