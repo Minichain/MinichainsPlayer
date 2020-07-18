@@ -32,6 +32,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     lateinit var currentSongCurrentTimeTexView: TextView
     lateinit var currentSongTimeBarSeekBar: SeekBar
     lateinit var currentSongIntegerTextView: TextView
+    lateinit var fillPlayListImageButton: ImageButton
 
     private var playing = false
     private var currentSongTime: Int = 0
@@ -133,6 +134,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongCurrentTimeTexView = this.findViewById(R.id.current_song_current_time)
         currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar)
         currentSongIntegerTextView = this.findViewById(R.id.current_song_integer)
+        fillPlayListImageButton = this.findViewById(R.id.fill_play_list)
 
         initUpdateViewsThread()
 
@@ -167,6 +169,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                 Toast.makeText(this, "Shuffle enabled", Toast.LENGTH_SHORT).show()
             }
             sendBroadcastToService(BroadcastMessage.SHUFFLE)
+        }
+
+        fillPlayListImageButton.setOnClickListener {
+            Toast.makeText(this, "Filling playlist with songs...", Toast.LENGTH_LONG).show()
+            sendBroadcastToService(BroadcastMessage.FILL_PLAYLIST)
         }
 
         currentSongTimeBarSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {

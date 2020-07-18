@@ -74,7 +74,8 @@ class MinichainsPlayerService : Service() {
 
         dataBaseHelper = FeedReaderDbHelper(this)
 
-        fillPlayList()
+        listOfSongs = ArrayList()
+        loadSongListFromDataBase()
         updateCurrentSongInfo()
 
         minichainsPlayerBroadcastReceiver = MinichainsPlayerServiceBroadcastReceiver()
@@ -164,6 +165,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun play(songPath: String, currentSongTime: Int) {
+        if (listOfSongs.isNullOrEmpty()) return
         if (!playing) {
             currentSongPath = songPath
             mediaPlayer = MediaPlayer()
@@ -184,6 +186,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun next() {
+        if (listOfSongs.isNullOrEmpty()) return
         if (shuffle) {
             currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
         } else {
@@ -201,6 +204,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun previous() {
+        if (listOfSongs.isNullOrEmpty()) return
         if (shuffle) {
             currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
         } else {
@@ -248,9 +252,9 @@ class MinichainsPlayerService : Service() {
         val thread: Thread = object : Thread() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
-                listOfSongs = ArrayList()
                 fillDataBase(musicLocation)
                 loadSongListFromDataBase()
+                updateCurrentSongInfo()
                 Log.l("listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
                 Log.l("listOfSongs size: " + listOfSongs?.size)
             }
@@ -332,7 +336,7 @@ class MinichainsPlayerService : Service() {
 
     private fun loadSongListFromDataBase() {
         val dataBase = dataBaseHelper.writableDatabase
-        val cursor = dataBase.rawQuery("SELECT * FROM $TABLE_NAME ORDER BY $COLUMN_SONG ASC", null);
+        val cursor = dataBase.rawQuery("SELECT * FROM $TABLE_NAME ORDER BY $COLUMN_SONG ASC", null)
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast) {
                 val path = cursor.getString(cursor.getColumnIndex("path"))
@@ -410,6 +414,9 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_MEDIA_BUTTON")
                     } else if (broadcast == Intent.ACTION_HEADSET_PLUG) {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_HEADSET_PLUG")
+                    } else if (broadcast == BroadcastMessage.FILL_PLAYLIST.toString()) {
+                        Log.l("MinichainsPlayerServiceLog:: FILL_PLAYLIST")
+                        fillPlayList()
                     } else {
 //                        Log.l("MinichainsPlayerServiceLog:: Unknown broadcast received")
                     }
