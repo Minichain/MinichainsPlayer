@@ -466,9 +466,9 @@ class MinichainsPlayerService : Service() {
         /** Open Main Activity **/
 //        //Notification intent to open the activity when pressing the notification
         val intent = Intent(this, MinichainsPlayerActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            flags = Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
         }
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, intent.flags)
 
         /** PREVIOUS **/
         val previousIntent = Intent()
@@ -490,7 +490,7 @@ class MinichainsPlayerService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setSmallIcon(R.drawable.baseline_music_note_24)
             .setContentTitle(notificationTitle)
-//            .setContentIntent(pendingIntent)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(false)
             .addAction(R.drawable.baseline_skip_previous_white_18, "Previous", previousPendingIntent)
             .addAction(R.drawable.baseline_play_arrow_white_18, "Play/Stop", playStopPendingIntent)
