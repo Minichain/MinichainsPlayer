@@ -414,6 +414,7 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_MEDIA_BUTTON")
                     } else if (broadcast == Intent.ACTION_HEADSET_PLUG) {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_HEADSET_PLUG")
+                        stopPlaying()
                     } else if (broadcast == BroadcastMessage.FILL_PLAYLIST.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: FILL_PLAYLIST")
                         fillPlayList()
@@ -435,7 +436,7 @@ class MinichainsPlayerService : Service() {
             }
 
 //            intentFilter.addAction(Intent.ACTION_MEDIA_BUTTON)
-//            intentFilter.addAction(Intent.ACTION_HEADSET_PLUG)
+            intentFilter.addAction(Intent.ACTION_HEADSET_PLUG)
 
             registerReceiver(minichainsPlayerBroadcastReceiver, intentFilter)
         } catch (ex: Exception) {
