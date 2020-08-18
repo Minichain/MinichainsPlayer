@@ -38,7 +38,6 @@ class MinichainsPlayerService : Service() {
     private var currentSongName = ""
     private var currentSongPath = ""
     private var currentSongTime = 0
-    private var playing: Boolean = false
     private var currentSongInteger = 0
     private var shuffle = false
 
@@ -68,8 +67,8 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun init() {
-        musicLocation = "/sdcard/Music/"
-//        musicLocation = String().plus("/storage/0C80-1910").plus("/Music/")
+//        musicLocation = "/sdcard/Music/"
+        musicLocation = String().plus("/storage/3230-3632").plus("/Music/Music/")
         Log.l("musicLocation: " + musicLocation)
 
         dataBaseHelper = FeedReaderDbHelper(this)
@@ -105,7 +104,7 @@ class MinichainsPlayerService : Service() {
                         Thread(Runnable {
                             Log.l("timesPressingMediaButton: $timesPressingMediaButton")
                             if (timesPressingMediaButton == 1) {
-                                if (!playing) {
+                                if (mediaPlayer != null && !mediaPlayer?.isPlaying!!) {
                                     play(currentSongPath, currentSongTime)
                                 } else {
                                     stopPlaying()
@@ -152,7 +151,7 @@ class MinichainsPlayerService : Service() {
             currentSongTime = mediaPlayer?.currentPosition!!
         }
         bundle.putInt("currentSongTime", currentSongTime)
-        bundle.putBoolean("playing", playing)
+        if (mediaPlayer != null) bundle.putBoolean("playing",  mediaPlayer?.isPlaying!!)
         bundle.putString("currentSongPath", currentSongPath)
         bundle.putInt("currentSongInteger", currentSongInteger)
         if (listOfSongs != null && currentSongInteger < listOfSongs?.size!!) {
@@ -165,24 +164,31 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun play(songPath: String, currentSongTime: Int) {
+        Log.l("Play $songPath")
         if (listOfSongs.isNullOrEmpty()) return
-        if (!playing) {
+
+        mediaPlayer = MediaPlayer()
+
+        if (!mediaPlayer?.isPlaying!!) {
             currentSongPath = songPath
-            mediaPlayer = MediaPlayer()
-            mediaPlayer?.setOnCompletionListener {
-                next()
+            try {
+                mediaPlayer?.setOnCompletionListener {
+                    next()
+                }
+                mediaPlayer?.setDataSource(songPath)
+                mediaPlayer?.prepare()
+                mediaPlayer?.setOnPreparedListener {
+                    mediaPlayer?.seekTo(currentSongTime)
+                    mediaPlayer?.start()
+                }
+            } catch (e: Exception) {
+                Log.l("Song $songPath could not be played.")
             }
-            mediaPlayer?.setDataSource(songPath)
-            mediaPlayer?.prepare()
-            mediaPlayer?.seekTo(currentSongTime)
-            mediaPlayer?.start()
-            playing = true
         }
     }
 
     private fun stopPlaying() {
         mediaPlayer?.pause()
-        playing = false
     }
 
     private fun next() {
@@ -277,6 +283,9 @@ class MinichainsPlayerService : Service() {
                     val fileName = file.name.substring(0, file.name.lastIndexOf("."))
                     val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
                     val songFile = SongFile(rootPath, fileName, fileFormat, -1)
+                    Log.l("Song added to play list. rootPath: " + rootPath
+                            + ", fileName: " + fileName
+                            + ", fileFormat: " + fileFormat)
 //                    Log.l("fileList size: " + listOfSongs?.size)
                     insertOrUpdateSongInDataBase(rootPath, fileName, fileFormat)
                 }
@@ -390,7 +399,7 @@ class MinichainsPlayerService : Service() {
                         stopPlaying()
                     } else if (broadcast == BroadcastMessage.START_STOP_PLAYING_NOTIFICATION.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: START_STOP_PLAYING_NOTIFICATION")
-                        if (!playing) {
+                        if (mediaPlayer != null && !mediaPlayer?.isPlaying!!) {
                             play(currentSongPath, currentSongTime)
                         } else {
                             stopPlaying()
@@ -402,7 +411,7 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: NEXT_SONG")
                         next()
                     } else if (broadcast == BroadcastMessage.SHUFFLE.toString()) {
-                        Log.l("MinichainsPlayerServiceLog:: NEXT_SONG")
+                        Log.l("MinichainsPlayerServiceLog:: SHUFFLE")
                         shuffle = !shuffle
                     } else if (broadcast == BroadcastMessage.SET_CURRENT_SONG_TIME.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: SET_CURRENT_SONG_TIME")
