@@ -2,6 +2,7 @@ package com.example.minichainsplayer
 
 enum class BroadcastMessage {
     START_PLAYING,
+    START_PLAYING_SONG,
     STOP_PLAYING,
     START_STOP_PLAYING_NOTIFICATION,
     PREVIOUS_SONG,

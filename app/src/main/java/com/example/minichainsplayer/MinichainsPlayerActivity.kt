@@ -15,6 +15,7 @@ import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -182,8 +183,19 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         }
 
         fillPlayListImageButton.setOnClickListener {
-            Toast.makeText(this, "Filling playlist with songs...", Toast.LENGTH_LONG).show()
-            sendBroadcastToService(BroadcastMessage.FILL_PLAYLIST)
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Song List")
+
+            val arrayListOfSongs = DataBase.getListOfSongs()
+            builder.setItems(arrayListOfSongs) { dialog, which ->
+                var bundle = Bundle()
+                bundle.putString("currentSongName", arrayListOfSongs[which])
+                bundle.putInt("currentSongInteger", which)
+                sendBroadcastToService(BroadcastMessage.START_PLAYING_SONG, bundle)
+            }
+
+            val dialog = builder.create()
+            dialog.show()
         }
 
         currentSongTimeBarSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {

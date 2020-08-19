@@ -12,11 +12,9 @@ import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_FORMAT
-import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_LENGTH
-import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_PATH
 import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_SONG
 import com.example.minichainsplayer.FeedReaderContract.FeedEntry.TABLE_NAME
 import java.io.File
@@ -47,8 +45,6 @@ class MinichainsPlayerService : Service() {
     private lateinit var mediaSession: MediaSessionCompat
     private var timesPressingMediaButton = 0
 
-    private lateinit var dataBaseHelper: FeedReaderDbHelper
-
     override fun onCreate() {
         super.onCreate()
         Log.l("MinichainsPlayerServiceLog:: onCreate service")
@@ -71,7 +67,7 @@ class MinichainsPlayerService : Service() {
         musicLocation = String().plus("/storage/3230-3632").plus("/Music/Music/")
         Log.l("musicLocation: " + musicLocation)
 
-        dataBaseHelper = FeedReaderDbHelper(this)
+        DataBase.dataBaseHelper = FeedReaderDbHelper(this)
 
         listOfSongs = ArrayList()
         loadSongListFromDataBase()
@@ -84,6 +80,11 @@ class MinichainsPlayerService : Service() {
         initUpdateActivityThread()
 
         initMediaSessions()
+
+        if (DataBase.getNumberOfSongs() <= 0) {
+            Log.l("DataBase.getNumberOfSongs(): " + DataBase.getNumberOfSongs() + ", fillPlayList()")
+            fillPlayList()
+        }
     }
 
     var mediaSessionTimer = Timer()
@@ -255,6 +256,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun fillPlayList() {
+        Toast.makeText(this, "Filling playlist with songs...", Toast.LENGTH_LONG).show()
         val thread: Thread = object : Thread() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
@@ -287,7 +289,7 @@ class MinichainsPlayerService : Service() {
                             + ", fileName: " + fileName
                             + ", fileFormat: " + fileFormat)
 //                    Log.l("fileList size: " + listOfSongs?.size)
-                    insertOrUpdateSongInDataBase(rootPath, fileName, fileFormat)
+                    DataBase.insertOrUpdateSongInDataBase(rootPath, fileName, fileFormat)
                 }
             }
 
@@ -297,54 +299,8 @@ class MinichainsPlayerService : Service() {
         }
     }
 
-    private fun insertOrUpdateSongInDataBase(rootPath: String, fileName: String, fileFormat: String) {
-        var newFileName = fileName
-        if (fileName.contains("'")) {
-            newFileName = fileName.replace("'", "_")
-        }
-        try {
-            val dataBase = dataBaseHelper.writableDatabase
-
-            if (dataBase != null) {
-                val values = ContentValues().apply {
-                    put(COLUMN_PATH, rootPath)
-                    put(COLUMN_SONG, newFileName)
-                    put(COLUMN_FORMAT, fileFormat)
-                    put(COLUMN_LENGTH, -1)
-                }
-
-                if (!isSongInDataBase(newFileName)) {
-                    val newRowId = dataBase?.insert(TABLE_NAME, null, values)
-                    Log.l("DataBaseLog: Song '$newFileName' inserted into the database.")
-                } else {
-                    val newRowId = dataBase?.update(TABLE_NAME, values, COLUMN_SONG + " = '" + newFileName + "'", null)
-                    Log.l("DataBaseLog: Song '$newFileName' is already in the database. Updating it.")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("DataBaseLog: Error inserting song '$newFileName' into database.")
-        }
-    }
-
-    private fun isSongInDataBase(songName: String): Boolean {
-        Log.l("isSongInDataBase: songName: " + songName)
-        try {
-            val dataBase = dataBaseHelper.writableDatabase
-            val cursor = dataBase.rawQuery( "SELECT COUNT($COLUMN_SONG) " +
-                    "FROM $TABLE_NAME WHERE $COLUMN_SONG = '$songName'", null);
-            cursor.moveToFirst()
-            if (cursor.getInt(0) != 0) {
-                cursor.close()
-                return true
-            }
-        } catch (e: Exception) {
-            return false
-        }
-        return false
-    }
-
     private fun loadSongListFromDataBase() {
-        val dataBase = dataBaseHelper.writableDatabase
+        val dataBase = DataBase.dataBaseHelper.writableDatabase
         val cursor = dataBase.rawQuery("SELECT * FROM $TABLE_NAME ORDER BY $COLUMN_SONG ASC", null)
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast) {
@@ -393,6 +349,14 @@ class MinichainsPlayerService : Service() {
                 if (broadcast != null) {
                     if (broadcast == BroadcastMessage.START_PLAYING.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: START_PLAYING")
+                        play(currentSongPath, currentSongTime)
+                    } else if (broadcast == BroadcastMessage.START_PLAYING_SONG.toString()) {
+                        Log.l("MinichainsPlayerServiceLog:: START_PLAYING_SONG")
+                        stopPlaying()
+                        currentSongName = extras?.getString("currentSongName").toString()
+                        currentSongInteger = extras?.getInt("currentSongInteger")!!.toInt()
+                        currentSongPath = musicLocation + currentSongName + ".mp3"
+                        currentSongTime = 0
                         play(currentSongPath, currentSongTime)
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: STOP_PLAYING")
