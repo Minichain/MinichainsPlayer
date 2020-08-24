@@ -6,6 +6,9 @@
     android:layout_width="10dp"
     tools:context=".MinichainsPlayerActivity">
 
+    <item android:id="@+id/settings_option"
+        android:title="@string/settings"
+        app:showAsAction="never"/>
     <item android:id="@+id/exit_app_option"
         android:title="@string/close_app"
         app:showAsAction="never"/>

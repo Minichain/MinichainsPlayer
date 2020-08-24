@@ -106,9 +106,9 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     }
 
     private fun init() {
-        Log.l("Init Activity!")
+        Log.l("Init MinichainsPlayerActivity!")
 
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.minichains_player_activity)
         val serviceIntent = Intent(applicationContext, MinichainsPlayerService::class.java)
 
         //Start service:
@@ -269,6 +269,12 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         val id = item.itemId
         val intent: Intent
         return when (id) {
+            R.id.settings_option -> {
+                this.onPause()
+                intent =  Intent(applicationContext, SettingsActivity::class.java)
+                startActivity(intent)
+                true
+            }
             R.id.exit_app_option -> {
                 closeApp()
                 true

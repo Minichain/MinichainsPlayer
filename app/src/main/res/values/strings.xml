@@ -2,5 +2,7 @@
     <string name="app_name">Minichain\'s Player</string>
 
     <!--Top right menu-->
+    <string name="settings">Settings</string>
+    <string name="music_path">Music Path</string>
     <string name="close_app">Close App</string>
 </resources>
