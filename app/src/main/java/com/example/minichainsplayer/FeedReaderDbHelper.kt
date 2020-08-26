@@ -4,36 +4,53 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.provider.BaseColumns
+import com.example.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
+import com.example.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
 
 object FeedReaderContract {
     // Table contents are grouped together in an anonymous object.
-    object FeedEntry : BaseColumns {
-        const val TABLE_NAME = "songList"
+    object SongListTable : BaseColumns {
+        const val SONG_LIST_TABLE_NAME = "songList"
         const val COLUMN_PATH = "path"
         const val COLUMN_SONG = "song"
         const val COLUMN_FORMAT = "format"
         const val COLUMN_LENGTH = "length"
     }
+
+    object SettingsTable : BaseColumns {
+        const val SETTINGS_TABLE_NAME = "settings"
+        const val COLUMN_SETTING = "setting"
+        const val COLUMN_SETTING_VALUE = "value"
+    }
 }
 
-private val SQL_CREATE_ENTRIES = "CREATE TABLE ${FeedReaderContract.FeedEntry.TABLE_NAME} (" +
+private val SQL_CREATE_SONG_LIST_ENTRIES = "CREATE TABLE ${SONG_LIST_TABLE_NAME} (" +
         "${BaseColumns._ID} INTEGER PRIMARY KEY," +
-        "${FeedReaderContract.FeedEntry.COLUMN_PATH} TEXT," +
-        "${FeedReaderContract.FeedEntry.COLUMN_SONG} TEXT," +
-        "${FeedReaderContract.FeedEntry.COLUMN_FORMAT} TEXT," +
-        "${FeedReaderContract.FeedEntry.COLUMN_LENGTH} TEXT)"
+        "${FeedReaderContract.SongListTable.COLUMN_PATH} TEXT," +
+        "${FeedReaderContract.SongListTable.COLUMN_SONG} TEXT," +
+        "${FeedReaderContract.SongListTable.COLUMN_FORMAT} TEXT," +
+        "${FeedReaderContract.SongListTable.COLUMN_LENGTH} TEXT)"
 
-private val SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS ${FeedReaderContract.FeedEntry.TABLE_NAME}"
+private val SQL_CREATE_SETTINGS_ENTRIES = "CREATE TABLE ${SETTINGS_TABLE_NAME} (" +
+        "${BaseColumns._ID} INTEGER PRIMARY KEY," +
+        "${FeedReaderContract.SettingsTable.COLUMN_SETTING} TEXT," +
+        "${FeedReaderContract.SettingsTable.COLUMN_SETTING_VALUE} TEXT)"
+
+private val SQL_DELETE_SONG_LIST_ENTRIES = "DROP TABLE IF EXISTS ${SONG_LIST_TABLE_NAME}"
+
+private val SQL_DELETE_SETTINGS_ENTRIES = "DROP TABLE IF EXISTS ${SETTINGS_TABLE_NAME}"
 
 class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL(SQL_CREATE_ENTRIES)
+        db.execSQL(SQL_CREATE_SONG_LIST_ENTRIES)
+        db.execSQL(SQL_CREATE_SETTINGS_ENTRIES)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
-        db.execSQL(SQL_DELETE_ENTRIES)
+        db.execSQL(SQL_DELETE_SONG_LIST_ENTRIES)
+        db.execSQL(SQL_DELETE_SETTINGS_ENTRIES)
         onCreate(db)
     }
 
@@ -43,7 +60,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
 
     companion object {
         // If you change the database schema, you must increment the database version.
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
         const val DATABASE_NAME = "MinichainsPlayer.db"
     }
 }

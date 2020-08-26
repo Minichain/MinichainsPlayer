@@ -15,8 +15,8 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.minichainsplayer.FeedReaderContract.FeedEntry.COLUMN_SONG
-import com.example.minichainsplayer.FeedReaderContract.FeedEntry.TABLE_NAME
+import com.example.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_SONG
+import com.example.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -31,7 +31,6 @@ class MinichainsPlayerService : Service() {
     private val serviceNotificationStringId = "MINICHAINS_PLAYER_SERVICE_NOTIFICATION"
     private val serviceNotificationId = 1
 
-    private var musicLocation = ""
     private var mediaPlayer: MediaPlayer? = null
     private var currentSongName = ""
     private var currentSongPath = ""
@@ -63,11 +62,11 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun init() {
-        musicLocation = "/sdcard/Music/"
-//        musicLocation = String().plus("/storage/3230-3632").plus("/Music/Music/")
-        Log.l("musicLocation: " + musicLocation)
-
         DataBase.dataBaseHelper = FeedReaderDbHelper(this)
+
+        DataBase.setMusicPath("/sdcard/Music/")
+//        DataBase.setMusicPath(String().plus("/storage/3230-3632").plus("/Music/Music/"))
+        Log.l("musicLocation: " + DataBase.getMusicPath())
 
         listOfSongs = ArrayList()
         loadSongListFromDataBase()
@@ -247,7 +246,7 @@ class MinichainsPlayerService : Service() {
         val thread: Thread = object : Thread() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
-                fillDataBase(musicLocation)
+                fillDataBase(DataBase.getMusicPath())
                 loadSongListFromDataBase()
                 updateCurrentSongInfo()
                 Log.l("listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
@@ -288,7 +287,7 @@ class MinichainsPlayerService : Service() {
 
     private fun loadSongListFromDataBase() {
         val dataBase = DataBase.dataBaseHelper.writableDatabase
-        val cursor = dataBase.rawQuery("SELECT * FROM $TABLE_NAME ORDER BY $COLUMN_SONG ASC", null)
+        val cursor = dataBase.rawQuery("SELECT * FROM $SONG_LIST_TABLE_NAME ORDER BY $COLUMN_SONG ASC", null)
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast) {
                 val path = cursor.getString(cursor.getColumnIndex("path"))
@@ -342,7 +341,7 @@ class MinichainsPlayerService : Service() {
                         pause()
                         currentSongName = extras?.getString("currentSongName").toString()
                         currentSongInteger = extras?.getInt("currentSongInteger")!!.toInt()
-                        currentSongPath = musicLocation + currentSongName + ".mp3"
+                        currentSongPath = DataBase.getMusicPath() + currentSongName + ".mp3"
                         currentSongTime = 0
                         play()
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
