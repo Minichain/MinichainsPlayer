@@ -33,7 +33,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     lateinit var currentSongCurrentTimeTexView: TextView
     lateinit var currentSongTimeBarSeekBar: SeekBar
     lateinit var currentSongIntegerTextView: TextView
-    lateinit var fillPlayListImageButton: ImageButton
+    lateinit var showPlayListImageButton: ImageButton
     lateinit var appVersionNumberTextView: TextView
 
     private var playing = false
@@ -136,7 +136,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongCurrentTimeTexView = this.findViewById(R.id.current_song_current_time)
         currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar)
         currentSongIntegerTextView = this.findViewById(R.id.current_song_integer)
-        fillPlayListImageButton = this.findViewById(R.id.fill_play_list)
+        showPlayListImageButton = this.findViewById(R.id.show_play_list)
         appVersionNumberTextView = this.findViewById(R.id.app_version_number)
 
         try {
@@ -182,7 +182,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             sendBroadcastToService(BroadcastMessage.SHUFFLE)
         }
 
-        fillPlayListImageButton.setOnClickListener {
+        showPlayListImageButton.setOnClickListener {
             val builder = AlertDialog.Builder(this)
             builder.setTitle("Song List")
 

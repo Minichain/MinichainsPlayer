@@ -34,7 +34,7 @@ class DataBase {
                         dataBase?.insert(SONG_LIST_TABLE_NAME, null, values)
                         Log.l("DataBaseLog: Song '$newFileName' inserted into the database.")
                     } else {
-                        dataBase?.update(SONG_LIST_TABLE_NAME, values, COLUMN_SONG + " = '" + newFileName + "'", null)
+                        dataBase?.update(SONG_LIST_TABLE_NAME, values,  "$COLUMN_SONG = '$newFileName'", null)
                         Log.l("DataBaseLog: Song '$newFileName' is already in the database. Updating it.")
                     }
                 }
@@ -105,7 +105,7 @@ class DataBase {
                         Log.l("DataBaseLog: Music Path '$musicPath' inserted into the database.")
                     } else {
                         dataBase?.update(SETTINGS_TABLE_NAME, values, "$COLUMN_SETTING = 'musicPath'", null)
-                        Log.l("DataBaseLog: SoMusic Pathng '$musicPath' is already in the database. Updating it.")
+                        Log.l("DataBaseLog: Music Pathn '$musicPath' is already in the database. Updating it.")
                     }
                 }
             } catch (e: Exception) {

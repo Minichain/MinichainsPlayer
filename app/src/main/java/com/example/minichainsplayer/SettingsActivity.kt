@@ -1,10 +1,12 @@
 package com.example.minichainsplayer
 
+import android.content.Intent
 import android.os.Bundle
-import android.os.Environment.getExternalStorageDirectory
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.files.folderChooser
 import java.io.File
@@ -14,6 +16,7 @@ class SettingsActivity : AppCompatActivity() {
 
     lateinit var musicPathEditText: EditText
     lateinit var openFileDialogButton: ImageButton
+    lateinit var fillPlayListButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,8 +49,16 @@ class SettingsActivity : AppCompatActivity() {
 
         musicPathEditText = this.findViewById(R.id.music_path_edit_text)
         openFileDialogButton = this.findViewById(R.id.open_file_dialog_button)
+        fillPlayListButton = this.findViewById(R.id.fill_play_list_button)
+
+        fillPlayListButton.setOnClickListener {
+            sendBroadcastToService(BroadcastMessage.FILL_PLAYLIST)
+        }
 
         musicPathEditText.setText(DataBase.getMusicPath())
+        musicPathEditText.addTextChangedListener {
+            DataBase.setMusicPath(musicPathEditText.text.toString())
+        }
 
         openFileDialogButton.setOnClickListener {
             showFoldersDialog()
@@ -65,6 +76,24 @@ class SettingsActivity : AppCompatActivity() {
                 musicPathEditText.setText(folder.toString())
                 DataBase.setMusicPath(folder.toString())
             }
+        }
+    }
+
+    private fun sendBroadcastToService(broadcastMessage: BroadcastMessage) {
+        sendBroadcastToService(broadcastMessage, null)
+    }
+
+    private fun sendBroadcastToService(broadcastMessage: BroadcastMessage, bundle: Bundle?) {
+        Log.l("SettingsActivityLog:: sending broadcast $broadcastMessage")
+        try {
+            val broadCastIntent = Intent()
+            broadCastIntent.action = broadcastMessage.toString()
+            if (bundle != null) {
+                broadCastIntent.putExtras(bundle)
+            }
+            sendBroadcast(broadCastIntent)
+        } catch (ex: java.lang.Exception) {
+            ex.printStackTrace()
         }
     }
 }

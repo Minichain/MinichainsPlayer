@@ -4,5 +4,6 @@
     <!--Top right menu-->
     <string name="settings">Settings</string>
     <string name="music_path">Music Path</string>
+    <string name="fill_play_list">Fill Play List</string>
     <string name="close_app">Close App</string>
 </resources>

@@ -64,8 +64,9 @@ class MinichainsPlayerService : Service() {
     private fun init() {
         DataBase.dataBaseHelper = FeedReaderDbHelper(this)
 
-        DataBase.setMusicPath("/sdcard/Music/")
-//        DataBase.setMusicPath(String().plus("/storage/3230-3632").plus("/Music/Music/"))
+//        DataBase.setMusicPath("/sdcard/Music")
+        DataBase.setMusicPath("/storage/3230-3632")
+//        DataBase.setMusicPath(String().plus("/storage/3230-3632").plus("/Music/Music"))
         Log.l("musicLocation: " + DataBase.getMusicPath())
 
         listOfSongs = ArrayList()
@@ -80,10 +81,10 @@ class MinichainsPlayerService : Service() {
 
         initMediaSessions()
 
-        if (DataBase.getNumberOfSongs() <= 0) {
-            Log.l("DataBase.getNumberOfSongs(): " + DataBase.getNumberOfSongs() + ", fillPlayList()")
-            fillPlayList()
-        }
+//        if (DataBase.getNumberOfSongs() <= 0) {
+//            Log.l("DataBase.getNumberOfSongs(): " + DataBase.getNumberOfSongs() + ", fillPlayList()")
+//            fillPlayList()
+//        }
     }
 
     var mediaSessionTimer = Timer()
@@ -221,22 +222,28 @@ class MinichainsPlayerService : Service() {
         if (listOfSongs != null && listOfSongs?.isNotEmpty()!!) {
             currentSongName = listOfSongs?.get(currentSongInteger)?.songName.toString()
             currentSongPath = String().plus(listOfSongs?.get(currentSongInteger)?.path.toString())
+                .plus("/")
                 .plus(listOfSongs?.get(currentSongInteger)?.songName)
                 .plus(".")
                 .plus(listOfSongs?.get(currentSongInteger)?.format)
 
             if (listOfSongs?.get(currentSongInteger)?.length!!.toInt() <= 0) {
-                val metaRetriever = MediaMetadataRetriever()
-                metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path
-                        + listOfSongs?.get(currentSongInteger)?.songName
-                        + "."
-                        + listOfSongs?.get(currentSongInteger)?.format)
-                val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                var duration: Long = -1
-                if (durationString != null) {
-                    duration = durationString.toLong()
+                try {
+                    val metaRetriever = MediaMetadataRetriever()
+                    metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path
+                            + "/"
+                            + listOfSongs?.get(currentSongInteger)?.songName
+                            + "."
+                            + listOfSongs?.get(currentSongInteger)?.format)
+                    val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    var duration: Long = -1
+                    if (durationString != null) {
+                        duration = durationString.toLong()
+                    }
+                    listOfSongs?.get(currentSongInteger)?.length = duration
+                } catch (e: Exception) {
+                    Log.e(e.toString())
                 }
-                listOfSongs?.get(currentSongInteger)?.length = duration
             }
         }
     }
@@ -262,7 +269,7 @@ class MinichainsPlayerService : Service() {
             if (!rootFolder.exists()) {
                 return
             }
-            val files: Array<File> = rootFolder.listFiles() //here you will get NPE if directory doesn't contains any file. Handle it like this.
+            val files: Array<File> = rootFolder.listFiles()!! //here you will get NPE if directory doesn't contains any file. Handle it like this.
             for (file in files) {
                 if (file.isDirectory) {
                     fillDataBase(file.path)
@@ -288,6 +295,7 @@ class MinichainsPlayerService : Service() {
     private fun loadSongListFromDataBase() {
         val dataBase = DataBase.dataBaseHelper.writableDatabase
         val cursor = dataBase.rawQuery("SELECT * FROM $SONG_LIST_TABLE_NAME ORDER BY $COLUMN_SONG ASC", null)
+        listOfSongs?.clear()
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast) {
                 val path = cursor.getString(cursor.getColumnIndex("path"))
