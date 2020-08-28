@@ -4,7 +4,10 @@ MinichainsPlayer is, for now, a very simple Music Player developed in Kotlin cap
 
 
 ## Screenshots
-![Alt text](/screenshots/screenshot_01.png?raw=true "screenshot_01")
+<p align="center">
+  <img src="/screenshots/screenshot_01.png" width="480px"</img>
+  <img src="/screenshots/screenshot_02.png" width="480px"</img>
+</p>
 
 ## Social Media
 - LinkedIn: www.linkedin.com/in/adria-cadena-rubio
