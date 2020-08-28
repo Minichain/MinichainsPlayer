@@ -64,10 +64,12 @@ class MinichainsPlayerService : Service() {
     private fun init() {
         DataBase.dataBaseHelper = FeedReaderDbHelper(this)
 
-//        DataBase.setMusicPath("/sdcard/Music")
-        DataBase.setMusicPath("/storage/3230-3632")
-//        DataBase.setMusicPath(String().plus("/storage/3230-3632").plus("/Music/Music"))
-        Log.l("musicLocation: " + DataBase.getMusicPath())
+        if (DataBase.getMusicPath().isNullOrEmpty()) {
+//            DataBase.setMusicPath("/sdcard/Music")
+            DataBase.setMusicPath("/storage")
+//            DataBase.setMusicPath(String().plus("/storage/3230-3632").plus("/Music/Music"))
+        }
+        Log.l("Music Path: " + DataBase.getMusicPath())
 
         listOfSongs = ArrayList()
         loadSongListFromDataBase()
@@ -155,7 +157,7 @@ class MinichainsPlayerService : Service() {
         if (mediaPlayer != null) bundle.putBoolean("playing",  mediaPlayer?.isPlaying!!)
         bundle.putString("currentSongPath", currentSongPath)
         bundle.putInt("currentSongInteger", currentSongInteger)
-        if (listOfSongs != null && currentSongInteger < listOfSongs?.size!!) {
+        if (listOfSongs != null && currentSongInteger >= 0 && currentSongInteger < listOfSongs?.size!!) {
             bundle.putString("currentSongName", listOfSongs?.get(currentSongInteger)?.songName)
             bundle.putLong("currentSongLength", listOfSongs?.get(currentSongInteger)?.length!!)
             bundle.putInt("listOfSongsSize", listOfSongs?.size!!)
@@ -219,7 +221,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun updateCurrentSongInfo() {
-        if (listOfSongs != null && listOfSongs?.isNotEmpty()!!) {
+        if (listOfSongs != null && listOfSongs?.isNotEmpty()!! && currentSongInteger >= 0 && currentSongInteger < listOfSongs?.size!!) {
             currentSongName = listOfSongs?.get(currentSongInteger)?.songName.toString()
             currentSongPath = String().plus(listOfSongs?.get(currentSongInteger)?.path.toString())
                 .plus("/")
@@ -230,11 +232,7 @@ class MinichainsPlayerService : Service() {
             if (listOfSongs?.get(currentSongInteger)?.length!!.toInt() <= 0) {
                 try {
                     val metaRetriever = MediaMetadataRetriever()
-                    metaRetriever.setDataSource(listOfSongs?.get(currentSongInteger)?.path
-                            + "/"
-                            + listOfSongs?.get(currentSongInteger)?.songName
-                            + "."
-                            + listOfSongs?.get(currentSongInteger)?.format)
+                    metaRetriever.setDataSource(currentSongPath)
                     val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
                     var duration: Long = -1
                     if (durationString != null) {
@@ -261,6 +259,17 @@ class MinichainsPlayerService : Service() {
             }
         }
         thread.start()
+    }
+
+    private fun clearPlayList() {
+        Toast.makeText(this, "Clearing playlist...", Toast.LENGTH_LONG).show()
+        pause()
+        listOfSongs?.clear()
+        currentSongName = ""
+        currentSongPath = ""
+        currentSongInteger = 0
+        currentSongTime = 0
+        DataBase.clearSongListTable()
     }
 
     private fun fillDataBase(rootPath: String) {
@@ -385,6 +394,9 @@ class MinichainsPlayerService : Service() {
                     } else if (broadcast == BroadcastMessage.FILL_PLAYLIST.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: FILL_PLAYLIST")
                         fillPlayList()
+                    } else if (broadcast == BroadcastMessage.CLEAR_PLAYLIST.toString()) {
+                        Log.l("MinichainsPlayerServiceLog:: CLEAR_PLAYLIST")
+                        clearPlayList()
                     } else {
 //                        Log.l("MinichainsPlayerServiceLog:: Unknown broadcast received")
                     }

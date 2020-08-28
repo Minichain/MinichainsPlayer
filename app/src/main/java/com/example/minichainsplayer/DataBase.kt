@@ -1,6 +1,7 @@
 package com.example.minichainsplayer
 
 import android.content.ContentValues
+import android.database.sqlite.SQLiteDatabase
 import com.example.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING
 import com.example.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING_VALUE
 import com.example.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
@@ -87,6 +88,16 @@ class DataBase {
                 return count
             } catch (e: Exception) {
                 return -1
+            }
+        }
+
+        fun clearSongListTable() {
+            val dataBase = dataBaseHelper.writableDatabase
+            try {
+                val cursor = dataBase.rawQuery("DELETE FROM ${SONG_LIST_TABLE_NAME}", null)
+                cursor.close()
+            } catch (e: Exception) {
+
             }
         }
 

@@ -17,6 +17,7 @@ class SettingsActivity : AppCompatActivity() {
     lateinit var musicPathEditText: EditText
     lateinit var openFileDialogButton: ImageButton
     lateinit var fillPlayListButton: Button
+    lateinit var clearPlayListButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,9 +51,14 @@ class SettingsActivity : AppCompatActivity() {
         musicPathEditText = this.findViewById(R.id.music_path_edit_text)
         openFileDialogButton = this.findViewById(R.id.open_file_dialog_button)
         fillPlayListButton = this.findViewById(R.id.fill_play_list_button)
+        clearPlayListButton = this.findViewById(R.id.clear_play_list_button)
 
         fillPlayListButton.setOnClickListener {
             sendBroadcastToService(BroadcastMessage.FILL_PLAYLIST)
+        }
+
+        clearPlayListButton.setOnClickListener {
+            sendBroadcastToService(BroadcastMessage.CLEAR_PLAYLIST)
         }
 
         musicPathEditText.setText(DataBase.getMusicPath())

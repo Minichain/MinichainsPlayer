@@ -10,5 +10,6 @@ enum class BroadcastMessage {
     UPDATE_ACTIVITY,
     SHUFFLE,
     SET_CURRENT_SONG_TIME,
-    FILL_PLAYLIST
+    FILL_PLAYLIST,
+    CLEAR_PLAYLIST
 }
