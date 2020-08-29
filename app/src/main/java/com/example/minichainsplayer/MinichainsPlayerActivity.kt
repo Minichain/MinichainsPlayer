@@ -290,6 +290,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        Log.l("onDestroy $this")
         super.onDestroy()
         //If there is a Service running...
         val serviceIntent = Intent(applicationContext, MinichainsPlayerService::class.java)

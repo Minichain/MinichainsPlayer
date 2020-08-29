@@ -44,6 +44,8 @@ class MinichainsPlayerService : Service() {
     private lateinit var mediaSession: MediaSessionCompat
     private var timesPressingMediaButton = 0
 
+    private lateinit var updateActivityInfoThread: Thread
+
     override fun onCreate() {
         super.onCreate()
         Log.l("MinichainsPlayerServiceLog:: onCreate service")
@@ -56,9 +58,16 @@ class MinichainsPlayerService : Service() {
     }
 
     override fun onDestroy() {
+        Log.l("MinichainsPlayerServiceLog:: onDestroy $this")
+        updateActivityInfoThread.interrupt()
+
+        if (mediaPlayer != null) {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+        }
+
         unregisterReceiver(minichainsPlayerBroadcastReceiver)
         removeMinichainsPlayerServiceNotification()
-        Log.l("MinichainsPlayerServiceLog:: onDestroy service")
     }
 
     private fun init() {
@@ -132,7 +141,7 @@ class MinichainsPlayerService : Service() {
 
     private fun initUpdateActivityThread() {
         val sleepTime = 200
-        val thread: Thread = object : Thread() {
+        updateActivityInfoThread = object : Thread() {
             override fun run() {
                 try {
                     while (!this.isInterrupted) {
@@ -145,7 +154,7 @@ class MinichainsPlayerService : Service() {
                 }
             }
         }
-        thread.start()
+        updateActivityInfoThread.start()
     }
 
     private fun updateActivityVariables() {
