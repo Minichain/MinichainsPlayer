@@ -358,7 +358,11 @@ class MinichainsPlayerService : Service() {
                         pause()
                         currentSongName = extras?.getString("currentSongName").toString()
                         currentSongInteger = extras?.getInt("currentSongInteger")!!.toInt()
-                        currentSongPath = DataBase.getMusicPath() + currentSongName + ".mp3"
+                        currentSongPath = listOfSongs?.get(currentSongInteger)?.path!!.toString()
+                            .plus("/")
+                            .plus(currentSongName)
+                            .plus(".")
+                            .plus(listOfSongs?.get(currentSongInteger)?.format!!.toString())
                         currentSongTime = 0
                         play()
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
