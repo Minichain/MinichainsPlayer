@@ -14,8 +14,13 @@ import androidx.core.view.size
 
 class PlayListActivity : AppCompatActivity() {
     private lateinit var playListBroadcastReceiver: PlayListActivityBroadcastReceiver
+
     private lateinit var playListView: ListView
+
     private var currentSongInteger = -1
+    private var currentSongName = ""
+    private var currentSongLength: Long = -1
+    private var listOfSongsSize = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +80,10 @@ class PlayListActivity : AppCompatActivity() {
             playListView.setSelectionFromTop(currentSongInteger, playListView.height / 2)
             updateCurrentSongInteger(intent.getIntExtra("CURRENT_SONG_INTEGER", -1))
         })
+
+        playListView.setOnScrollChangeListener { view, i, i2, i3, i4 ->
+            updateListView()
+        }
     }
 
     private fun sendBroadcastToService(broadcastMessage: BroadcastMessage) {
@@ -109,6 +118,9 @@ class PlayListActivity : AppCompatActivity() {
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01.toString()) {
                         if (extras != null) {
                             updateCurrentSongInteger(extras.getInt("currentSongInteger"))
+                            currentSongName = extras.getString("currentSongName").toString()
+                            currentSongLength = extras.getLong("currentSongLength")
+                            listOfSongsSize = extras.getInt("listOfSongsSize")
                         }
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02.toString()) {
                         if (extras != null) {
@@ -125,21 +137,18 @@ class PlayListActivity : AppCompatActivity() {
     private fun updateCurrentSongInteger(newInteger: Int) {
         if (currentSongInteger != newInteger) {
             currentSongInteger = newInteger
-            for (i in 0 until (playListView.size - 1) step 1) {
-                playListView[i].background = getDrawable(R.color.colorPrimaryDark)
-            }
-            getViewByPosition(currentSongInteger, playListView)?.background = getDrawable(R.color.grey)
+            currentSongName = playListView.adapter.getItem(newInteger).toString()
         }
+        updateListView()
     }
 
-    private fun getViewByPosition(pos: Int, listView: ListView): View? {
-        val firstListItemPosition = listView.firstVisiblePosition
-        val lastListItemPosition = firstListItemPosition + listView.childCount - 1
-        return if (pos < firstListItemPosition || pos > lastListItemPosition) {
-            listView.adapter.getView(pos, null, listView)
-        } else {
-            val childIndex = pos - firstListItemPosition
-            listView.getChildAt(childIndex)
+    private fun updateListView() {
+        for (i in 0 until playListView.size step 1) {
+            if (playListView.adapter.getItem(playListView.firstVisiblePosition + i) == currentSongName) {
+                playListView[i].background = getDrawable(R.color.grey)
+            } else {
+                playListView[i].background = getDrawable(R.color.colorPrimaryDark)
+            }
         }
     }
 
