@@ -32,10 +32,15 @@ class MinichainsPlayerService : Service() {
     private val serviceNotificationId = 1
 
     private var mediaPlayer: MediaPlayer? = null
-    private var currentSongName = ""
-    private var currentSongPath = ""
+    private var updateActivityVariables01 = false
+    private var updateActivityVariables02 = false
+    private var playing = false
     private var currentSongTime = 0
+    private var currentSongPath = ""
     private var currentSongInteger = 0
+    private var currentSongName = ""
+    private var currentSongLength: Long = 0
+    private var listOfSongsSize = 0
     private var shuffle = false
 
     private var listOfSongs: ArrayList<SongFile>? = null
@@ -91,15 +96,14 @@ class MinichainsPlayerService : Service() {
         initUpdateActivityThread()
 
         initMediaSessions()
-
-//        if (DataBase.getNumberOfSongs() <= 0) {
-//            Log.l("DataBase.getNumberOfSongs(): " + DataBase.getNumberOfSongs() + ", fillPlayList()")
-//            fillPlayList()
-//        }
     }
 
     var mediaSessionTimer = Timer()
 
+    /**
+     * MediaSession handles the inputs from the headphones. The user can pause/resume the
+     * current playing song, and play the next/previous song.
+     **/
     private fun initMediaSessions() {
         mediaSession = MediaSessionCompat(applicationContext, MinichainsPlayerService::class.java.simpleName)
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
@@ -140,7 +144,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun initUpdateActivityThread() {
-        val sleepTime = 200
+        val sleepTime = 250
         updateActivityInfoThread = object : Thread() {
             override fun run() {
                 try {
@@ -158,21 +162,89 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun updateActivityVariables() {
-        var bundle = Bundle()
-        if (mediaPlayer != null) {
-            currentSongTime = mediaPlayer?.currentPosition!!
-        }
-        bundle.putInt("currentSongTime", currentSongTime)
-        if (mediaPlayer != null) bundle.putBoolean("playing",  mediaPlayer?.isPlaying!!)
-        bundle.putString("currentSongPath", currentSongPath)
-        bundle.putInt("currentSongInteger", currentSongInteger)
+        var bundle01 = Bundle()
+        if (mediaPlayer != null) setPlaying(mediaPlayer?.isPlaying!!)
+        bundle01.putBoolean("playing", playing)
+        bundle01.putString("currentSongPath", currentSongPath)
+        bundle01.putInt("currentSongInteger", currentSongInteger)
         if (listOfSongs != null && currentSongInteger >= 0 && currentSongInteger < listOfSongs?.size!!) {
-            bundle.putString("currentSongName", listOfSongs?.get(currentSongInteger)?.songName)
-            bundle.putLong("currentSongLength", listOfSongs?.get(currentSongInteger)?.length!!)
-            bundle.putInt("listOfSongsSize", listOfSongs?.size!!)
+            setCurrentSongName(listOfSongs?.get(currentSongInteger)?.songName!!)
+            bundle01.putString("currentSongName", currentSongName)
+            setCurrentSongLength(listOfSongs?.get(currentSongInteger)?.length!!)
+            bundle01.putLong("currentSongLength", currentSongLength)
+            setListOfSongsSize(listOfSongs?.size!!)
+            bundle01.putInt("listOfSongsSize", listOfSongsSize)
         }
-        bundle.putBoolean("shuffle", shuffle)
-        sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY, bundle)
+        bundle01.putBoolean("shuffle", shuffle)
+
+        if (updateActivityVariables01) {
+            sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01, bundle01)
+            updateActivityVariables01 = false
+        }
+
+        var bundle02 = Bundle()
+        if (mediaPlayer != null) setCurrentSongTime(mediaPlayer?.currentPosition!!)
+        bundle02.putInt("currentSongTime", currentSongTime)
+        if (updateActivityVariables02) {
+            sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02, bundle02)
+            updateActivityVariables02 = false
+        }
+    }
+
+    private fun setPlaying(newPlaying: Boolean) {
+        if (playing != newPlaying) {
+            playing = newPlaying
+            updateActivityVariables01 = true
+        }
+    }
+
+    private fun setCurrentSongPath(newCurrentSongPath: String) {
+        if (!currentSongPath.equals(newCurrentSongPath)) {
+            currentSongPath = newCurrentSongPath
+            updateActivityVariables01 = true
+        }
+    }
+
+    private fun setCurrentSongInteger(newCurrentSongInteger: Int) {
+        if (currentSongInteger != newCurrentSongInteger) {
+            currentSongInteger = newCurrentSongInteger
+            updateActivityVariables01 = true
+        }
+    }
+
+    private fun setCurrentSongName(newCurrentSongName: String) {
+        if (currentSongName != newCurrentSongName) {
+            currentSongName = newCurrentSongName
+            updateActivityVariables01 = true
+        }
+    }
+
+    private fun setCurrentSongLength(newCurrentSongLength: Long) {
+        if (currentSongLength != newCurrentSongLength) {
+            currentSongLength = newCurrentSongLength
+            updateActivityVariables01 = true
+        }
+    }
+
+    private fun setListOfSongsSize(newListOfSongsSize: Int) {
+        if (listOfSongsSize != newListOfSongsSize) {
+            listOfSongsSize = newListOfSongsSize
+            updateActivityVariables01 = true
+        }
+    }
+
+    private fun setShuffle(newShuffle: Boolean) {
+        if (shuffle != newShuffle) {
+            shuffle = newShuffle
+            updateActivityVariables01 = true
+        }
+    }
+
+    private fun setCurrentSongTime(newCurrentSongTime: Int) {
+        if (currentSongTime != newCurrentSongTime) {
+            currentSongTime = newCurrentSongTime
+            updateActivityVariables02 = true
+        }
     }
 
     private fun play(songPath: String = currentSongPath, songTime: Int = currentSongTime) {
@@ -182,7 +254,7 @@ class MinichainsPlayerService : Service() {
         mediaPlayer = MediaPlayer()
 
         if (!mediaPlayer?.isPlaying!!) {
-            currentSongPath = songPath
+            setCurrentSongPath(songPath)
             try {
                 mediaPlayer?.setOnCompletionListener {
                     next()
@@ -206,20 +278,20 @@ class MinichainsPlayerService : Service() {
     private fun next(next: Boolean = true) {
         if (listOfSongs.isNullOrEmpty()) return
         if (shuffle) {
-            currentSongInteger = (Math.random() * (listOfSongs?.size!! - 1)).toInt()
+            setCurrentSongInteger((Math.random() * (listOfSongs?.size!! - 1)).toInt())
         } else {
             if (next) {
-                currentSongInteger = (currentSongInteger + 1) % listOfSongs?.size!!
+                setCurrentSongInteger((currentSongInteger + 1) % listOfSongs?.size!!)
             } else {
-                currentSongInteger--
-                if (currentSongInteger < 0) {
-                    currentSongInteger = listOfSongs?.size!! - 1
+                setCurrentSongInteger(currentSongInteger - 1)
+                if ((currentSongInteger - 1) < 0) {
+                    setCurrentSongInteger(listOfSongs?.size!! - 1)
                 }
             }
         }
         pause()
         if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
-            this.currentSongTime = 0
+            setCurrentSongTime(0)
             updateCurrentSongInfo()
             play()
         }
@@ -231,12 +303,12 @@ class MinichainsPlayerService : Service() {
 
     private fun updateCurrentSongInfo() {
         if (listOfSongs != null && listOfSongs?.isNotEmpty()!! && currentSongInteger >= 0 && currentSongInteger < listOfSongs?.size!!) {
-            currentSongName = listOfSongs?.get(currentSongInteger)?.songName.toString()
-            currentSongPath = String().plus(listOfSongs?.get(currentSongInteger)?.path.toString())
+            setCurrentSongName(listOfSongs?.get(currentSongInteger)?.songName.toString())
+            setCurrentSongPath(String().plus(listOfSongs?.get(currentSongInteger)?.path.toString())
                 .plus("/")
                 .plus(listOfSongs?.get(currentSongInteger)?.songName)
                 .plus(".")
-                .plus(listOfSongs?.get(currentSongInteger)?.format)
+                .plus(listOfSongs?.get(currentSongInteger)?.format))
 
             if (listOfSongs?.get(currentSongInteger)?.length!!.toInt() <= 0) {
                 try {
@@ -274,10 +346,10 @@ class MinichainsPlayerService : Service() {
         Toast.makeText(this, "Clearing playlist...", Toast.LENGTH_LONG).show()
         pause()
         listOfSongs?.clear()
-        currentSongName = ""
-        currentSongPath = ""
-        currentSongInteger = 0
-        currentSongTime = 0
+        setCurrentSongName("")
+        setCurrentSongPath("")
+        setCurrentSongInteger(0)
+        setCurrentSongTime(0)
         DataBase.clearSongListTable()
     }
 
@@ -365,14 +437,14 @@ class MinichainsPlayerService : Service() {
                     } else if (broadcast == BroadcastMessage.START_PLAYING_SONG.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: START_PLAYING_SONG")
                         pause()
-                        currentSongName = extras?.getString("currentSongName").toString()
-                        currentSongInteger = extras?.getInt("currentSongInteger")!!.toInt()
-                        currentSongPath = listOfSongs?.get(currentSongInteger)?.path!!.toString()
+                        setCurrentSongName(extras?.getString("currentSongName").toString())
+                        setCurrentSongInteger(extras?.getInt("currentSongInteger")!!.toInt())
+                        setCurrentSongPath(listOfSongs?.get(currentSongInteger)?.path!!.toString()
                             .plus("/")
                             .plus(currentSongName)
                             .plus(".")
-                            .plus(listOfSongs?.get(currentSongInteger)?.format!!.toString())
-                        currentSongTime = 0
+                            .plus(listOfSongs?.get(currentSongInteger)?.format!!.toString()))
+                        setCurrentSongTime(0)
                         play()
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: STOP_PLAYING")
@@ -392,11 +464,11 @@ class MinichainsPlayerService : Service() {
                         next()
                     } else if (broadcast == BroadcastMessage.SHUFFLE.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: SHUFFLE")
-                        shuffle = !shuffle
+                        setShuffle(!shuffle)
                     } else if (broadcast == BroadcastMessage.SET_CURRENT_SONG_TIME.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: SET_CURRENT_SONG_TIME")
                         if (extras != null) {
-                            currentSongTime = extras.getInt("currentSongTime")
+                            setCurrentSongTime(extras.getInt("currentSongTime"))
                             mediaPlayer?.seekTo(currentSongTime)
                         }
                     } else if (broadcast == Intent.ACTION_MEDIA_BUTTON) {

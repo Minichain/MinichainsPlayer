@@ -39,7 +39,7 @@ class PlayListActivity : AppCompatActivity() {
         try {
             unregisterReceiver(playListBroadcastReceiver)
         } catch (e: IllegalArgumentException) {
-            Log.e("MinichainsPlayerActivityLog:: error un-registering receiver $e")
+            Log.e("PlayListActivityLog:: error un-registering receiver $e")
         }
     }
 
@@ -53,10 +53,7 @@ class PlayListActivity : AppCompatActivity() {
     }
 
     private fun init() {
-        Log.l("Init PlayListActivity!")
         setContentView(R.layout.play_list_activity)
-
-        currentSongInteger = intent.getIntExtra("CURRENT_SONG_INTEGER", -1)
 
         registerPlayListActivityBroadcastReceiver()
 
@@ -74,7 +71,10 @@ class PlayListActivity : AppCompatActivity() {
             sendBroadcastToService(BroadcastMessage.START_PLAYING_SONG, bundle)
         }
 
-        playListView.setSelection(currentSongInteger)
+        playListView.post(Runnable {
+            playListView.setSelectionFromTop(currentSongInteger, playListView.height / 2)
+            updateCurrentSongInteger(intent.getIntExtra("CURRENT_SONG_INTEGER", -1))
+        })
     }
 
     private fun sendBroadcastToService(broadcastMessage: BroadcastMessage) {
@@ -106,9 +106,12 @@ class PlayListActivity : AppCompatActivity() {
                     } else if (broadcast == BroadcastMessage.START_STOP_PLAYING_NOTIFICATION.toString()) {
                     } else if (broadcast == BroadcastMessage.PREVIOUS_SONG.toString()) {
                     } else if (broadcast == BroadcastMessage.NEXT_SONG.toString()) {
-                    } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY.toString()) {
+                    } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01.toString()) {
                         if (extras != null) {
                             updateCurrentSongInteger(extras.getInt("currentSongInteger"))
+                        }
+                    } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02.toString()) {
+                        if (extras != null) {
                         }
                     } else {
                     }
@@ -120,7 +123,7 @@ class PlayListActivity : AppCompatActivity() {
     }
 
     private fun updateCurrentSongInteger(newInteger: Int) {
-        if (currentSongInteger != -1 || currentSongInteger != newInteger) {
+        if (currentSongInteger != newInteger) {
             currentSongInteger = newInteger
             for (i in 0 until (playListView.size - 1) step 1) {
                 playListView[i].background = getDrawable(R.color.colorPrimaryDark)

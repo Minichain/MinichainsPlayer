@@ -152,9 +152,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                 if (!playing) {
                     Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
                     sendBroadcastToService(BroadcastMessage.START_PLAYING)
+                    playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
                 } else {
                     Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
                     sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
+                    playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
                 }
             }
         }
@@ -319,10 +321,9 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                         Log.l("MinichainsPlayerActivityLog:: PREVIOUS_SONG")
                     } else if (broadcast == BroadcastMessage.NEXT_SONG.toString()) {
                         Log.l("MinichainsPlayerActivityLog:: NEXT_SONG")
-                    } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY.toString()) {
-//                        Log.l("MinichainsPlayerActivityLog:: UPDATE_ACTIVITY")
+                    } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: UPDATE_ACTIVITY_VARIABLES_01")
                         if (extras != null) {
-                            currentSongTime = extras.getInt("currentSongTime")
                             playing = extras.getBoolean("playing")
                             currentSongPath = extras.getString("currentSongPath").toString()
                             currentSongInteger = extras.getInt("currentSongInteger")
@@ -330,6 +331,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                             currentSongLength = extras.getLong("currentSongLength")
                             listOfSongsSize = extras.getInt("listOfSongsSize")
                             shuffle = extras.getBoolean("shuffle")
+                        }
+                    } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02.toString()) {
+                        Log.l("MinichainsPlayerActivityLog:: UPDATE_ACTIVITY_VARIABLES_02")
+                        if (extras != null) {
+                            currentSongTime = extras.getInt("currentSongTime")
                         }
                     } else {
                         Log.l("MinichainsPlayerActivityLog:: Unknown broadcast received")
