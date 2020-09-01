@@ -77,8 +77,8 @@ class PlayListActivity : AppCompatActivity() {
         }
 
         playListView.post(Runnable {
-            playListView.setSelectionFromTop(currentSongInteger, playListView.height / 2)
             updateCurrentSongInteger(intent.getIntExtra("CURRENT_SONG_INTEGER", -1))
+            playListView.setSelectionFromTop(currentSongInteger, playListView.height / 2)
         })
 
         playListView.setOnScrollChangeListener { view, i, i2, i3, i4 ->
