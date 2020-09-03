@@ -66,10 +66,7 @@ class MinichainsPlayerService : Service() {
         Log.l("MinichainsPlayerServiceLog:: onDestroy $this")
         updateActivityInfoThread.interrupt()
 
-        if (mediaPlayer != null) {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-        }
+        if (mediaPlayer != null) stopAndRelease()
 
         unregisterReceiver(minichainsPlayerBroadcastReceiver)
         removeMinichainsPlayerServiceNotification()
@@ -84,6 +81,8 @@ class MinichainsPlayerService : Service() {
 //            DataBase.setMusicPath(String().plus("/storage/3230-3632").plus("/Music/Music"))
         }
         Log.l("Music Path: " + DataBase.getMusicPath())
+
+        mediaPlayer = MediaPlayer()
 
         listOfSongs = ArrayList()
         loadSongListFromDataBase()
@@ -123,7 +122,7 @@ class MinichainsPlayerService : Service() {
                                 if (mediaPlayer != null && !mediaPlayer?.isPlaying!!) {
                                     play()
                                 } else {
-                                    pause()
+                                    mediaPlayer?.pause()
                                 }
                             } else if (timesPressingMediaButton == 2) {
                                 next()
@@ -241,7 +240,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun setCurrentSongTime(newCurrentSongTime: Int) {
-        if (currentSongTime != newCurrentSongTime) {
+        if (newCurrentSongTime in 0 until currentSongLength && currentSongTime != newCurrentSongTime) {
             currentSongTime = newCurrentSongTime
             updateActivityVariables02 = true
         }
@@ -251,28 +250,37 @@ class MinichainsPlayerService : Service() {
         Log.l("Play $songPath")
         if (listOfSongs.isNullOrEmpty()) return
 
-        mediaPlayer = MediaPlayer()
-
-        if (!mediaPlayer?.isPlaying!!) {
-            setCurrentSongPath(songPath)
-            try {
+        setCurrentSongPath(songPath)
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.reset()
+            mediaPlayer?.setDataSource(songPath)
+            mediaPlayer?.prepare()
+            mediaPlayer?.setOnPreparedListener {
+                mediaPlayer?.seekTo(songTime)
+                mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener {
-                    next()
+                    if (currentSongTime > 0) {
+                        next()
+                    }
                 }
-                mediaPlayer?.setDataSource(songPath)
-                mediaPlayer?.prepare()
-                mediaPlayer?.setOnPreparedListener {
-                    mediaPlayer?.seekTo(songTime)
-                    mediaPlayer?.start()
-                }
-            } catch (e: Exception) {
-                Log.l("Song $songPath could not be played.")
             }
+        } catch (e: Exception) {
+            Log.e("Song $songPath could not be played.")
+            stopAndRelease()
+            play()
         }
     }
 
-    private fun pause() {
+    private fun pauseAndRelease() {
         mediaPlayer?.pause()
+        mediaPlayer?.release()
+    }
+
+    private fun stopAndRelease() {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     private fun next(next: Boolean = true) {
@@ -284,12 +292,12 @@ class MinichainsPlayerService : Service() {
                 setCurrentSongInteger((currentSongInteger + 1) % listOfSongs?.size!!)
             } else {
                 setCurrentSongInteger(currentSongInteger - 1)
-                if ((currentSongInteger - 1) < 0) {
+                if (currentSongInteger < 0) {
                     setCurrentSongInteger(listOfSongs?.size!! - 1)
                 }
             }
         }
-        pause()
+        mediaPlayer?.pause()
         if (listOfSongs != null && !listOfSongs?.isEmpty()!!) {
             setCurrentSongTime(0)
             updateCurrentSongInfo()
@@ -344,7 +352,7 @@ class MinichainsPlayerService : Service() {
 
     private fun clearPlayList() {
         Toast.makeText(this, "Clearing playlist...", Toast.LENGTH_LONG).show()
-        pause()
+        mediaPlayer?.pause()
         listOfSongs?.clear()
         setCurrentSongName("")
         setCurrentSongPath("")
@@ -436,7 +444,7 @@ class MinichainsPlayerService : Service() {
                         play()
                     } else if (broadcast == BroadcastMessage.START_PLAYING_SONG.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: START_PLAYING_SONG")
-                        pause()
+                        mediaPlayer?.pause()
                         setCurrentSongName(extras?.getString("currentSongName").toString())
                         setCurrentSongInteger(extras?.getInt("currentSongInteger")!!.toInt())
                         setCurrentSongPath(listOfSongs?.get(currentSongInteger)?.path!!.toString()
@@ -448,13 +456,13 @@ class MinichainsPlayerService : Service() {
                         play()
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: STOP_PLAYING")
-                        pause()
+                        mediaPlayer?.pause()
                     } else if (broadcast == BroadcastMessage.START_STOP_PLAYING_NOTIFICATION.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: START_STOP_PLAYING_NOTIFICATION")
                         if (mediaPlayer != null && !mediaPlayer?.isPlaying!!) {
                             play()
                         } else {
-                            pause()
+                            mediaPlayer?.pause()
                         }
                     } else if (broadcast == BroadcastMessage.PREVIOUS_SONG.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: PREVIOUS_SONG")
@@ -475,7 +483,7 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_MEDIA_BUTTON")
                     } else if (broadcast == Intent.ACTION_HEADSET_PLUG) {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_HEADSET_PLUG")
-                        pause()
+                        mediaPlayer?.pause()
                     } else if (broadcast == BroadcastMessage.FILL_PLAYLIST.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: FILL_PLAYLIST")
                         fillPlayList()

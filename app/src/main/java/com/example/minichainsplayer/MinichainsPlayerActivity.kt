@@ -143,8 +143,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             e.printStackTrace()
         }
 
-        initUpdateViewsThread()
-
         registerMinichainsPlayerActivityBroadcastReceiver()
 
         playButton.setOnClickListener {
@@ -204,23 +202,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                 sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
             }
         })
-    }
-
-    private fun initUpdateViewsThread() {
-        val thread: Thread = object : Thread() {
-            override fun run() {
-                try {
-                    while (!this.isInterrupted) {
-                        sleep(200)
-                        runOnUiThread {
-                            updateViews()
-                        }
-                    }
-                } catch (e: InterruptedException) {
-                }
-            }
-        }
-        thread.start()
     }
 
     private fun updateViews() {
@@ -332,11 +313,13 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                             listOfSongsSize = extras.getInt("listOfSongsSize")
                             shuffle = extras.getBoolean("shuffle")
                         }
+                        updateViews()
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02.toString()) {
                         Log.l("MinichainsPlayerActivityLog:: UPDATE_ACTIVITY_VARIABLES_02")
                         if (extras != null) {
                             currentSongTime = extras.getInt("currentSongTime")
                         }
+                        updateViews()
                     } else {
                         Log.l("MinichainsPlayerActivityLog:: Unknown broadcast received")
                     }
