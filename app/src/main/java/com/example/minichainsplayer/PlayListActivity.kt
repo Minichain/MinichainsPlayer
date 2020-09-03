@@ -5,17 +5,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.get
 import androidx.core.view.size
+import androidx.core.widget.addTextChangedListener
 
 class PlayListActivity : AppCompatActivity() {
     private lateinit var playListBroadcastReceiver: PlayListActivityBroadcastReceiver
 
     private lateinit var playListView: ListView
+    private lateinit var arrayAdapter: ArrayAdapter<String?>
+    private lateinit var playListTextFilter: EditText
 
     private var currentSongInteger = -1
     private var currentSongName = ""
@@ -63,16 +66,24 @@ class PlayListActivity : AppCompatActivity() {
         registerPlayListActivityBroadcastReceiver()
 
         playListView = this.findViewById(R.id.play_list_view)
+        playListTextFilter = this.findViewById(R.id.play_list_text_filter)
 
         val arrayListOfSongs = DataBase.getListOfSongs()
-        var arrayAdapter = ArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
+        arrayAdapter = ArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
         playListView.adapter = arrayAdapter
 
         playListView.setOnItemClickListener { adapterView, view, i, l ->
             var bundle = Bundle()
-            bundle.putString("currentSongName", arrayListOfSongs[i])
-            bundle.putInt("currentSongInteger", i)
-            updateCurrentSongInteger(i)
+            val currentSongName = playListView.adapter.getItem(i).toString()
+            bundle.putString("currentSongName", currentSongName)
+            var currentSongInteger = 0
+            for (j in 0 until playListView.adapter.count) {
+                if (playListView.adapter.getItem(j) == currentSongName) {
+                    currentSongInteger = j
+                }
+            }
+            bundle.putInt("currentSongInteger", currentSongInteger)
+            updateCurrentSongInteger(currentSongInteger)
             sendBroadcastToService(BroadcastMessage.START_PLAYING_SONG, bundle)
         }
 
@@ -82,6 +93,12 @@ class PlayListActivity : AppCompatActivity() {
         })
 
         playListView.setOnScrollChangeListener { view, i, i2, i3, i4 ->
+            updateListView()
+        }
+
+        playListTextFilter.addTextChangedListener {
+            arrayAdapter.filter.filter(playListTextFilter.text.toString())
+            playListView.adapter = arrayAdapter
             updateListView()
         }
     }
