@@ -76,14 +76,6 @@ class PlayListActivity : AppCompatActivity() {
             var bundle = Bundle()
             val currentSongName = playListView.adapter.getItem(i).toString()
             bundle.putString("currentSongName", currentSongName)
-            var currentSongInteger = 0
-            for (j in 0 until playListView.adapter.count) {
-                if (playListView.adapter.getItem(j) == currentSongName) {
-                    currentSongInteger = j
-                }
-            }
-            bundle.putInt("currentSongInteger", currentSongInteger)
-            updateCurrentSongInteger(currentSongInteger)
             sendBroadcastToService(BroadcastMessage.START_PLAYING_SONG, bundle)
         }
 

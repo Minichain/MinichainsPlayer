@@ -410,6 +410,15 @@ class MinichainsPlayerService : Service() {
         cursor.close()
     }
 
+    private fun getSongInteger(songName: String): Int {
+        for (i in 0 until listOfSongs?.size!! step 1) {
+            if (listOfSongs!![i].songName == songName) {
+                return i
+            }
+        }
+        return -1
+    }
+
     private fun sendBroadcastToActivity(broadcastMessage: BroadcastMessage) {
         sendBroadcastToActivity(broadcastMessage, null)
     }
@@ -446,7 +455,7 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: START_PLAYING_SONG")
                         mediaPlayer?.pause()
                         setCurrentSongName(extras?.getString("currentSongName").toString())
-                        setCurrentSongInteger(extras?.getInt("currentSongInteger")!!.toInt())
+                        setCurrentSongInteger(getSongInteger(currentSongName))
                         setCurrentSongPath(listOfSongs?.get(currentSongInteger)?.path!!.toString()
                             .plus("/")
                             .plus(currentSongName)

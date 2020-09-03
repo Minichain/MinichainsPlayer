@@ -10,5 +10,6 @@ MinichainsPlayer is, for now, a very simple Music Player developed in Kotlin cap
 </p>
 
 ## Social Media
-- LinkedIn: www.linkedin.com/in/adria-cadena-rubio
+- My Website : https://minichain.es
+- LinkedIn: https://linkedin.com/in/adria-cadena-rubio
 - Twitter: https://twitter.com/itsminichain
