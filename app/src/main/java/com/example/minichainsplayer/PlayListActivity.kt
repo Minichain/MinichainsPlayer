@@ -5,10 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.ListView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import androidx.core.view.size
 import androidx.core.widget.addTextChangedListener
@@ -19,11 +18,16 @@ class PlayListActivity : AppCompatActivity() {
     private lateinit var playListView: ListView
     private lateinit var arrayAdapter: ArrayAdapter<String?>
     private lateinit var playListTextFilter: EditText
+    private lateinit var playButton: ImageButton
+    private lateinit var previousButton: ImageButton
+    private lateinit var nextButton: ImageButton
+    private lateinit var currentSongTexView: TextView
 
     private var currentSongInteger = -1
     private var currentSongName = ""
     private var currentSongLength: Long = -1
     private var listOfSongsSize = -1
+    private var playing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +71,11 @@ class PlayListActivity : AppCompatActivity() {
 
         playListView = this.findViewById(R.id.play_list_view)
         playListTextFilter = this.findViewById(R.id.play_list_text_filter)
+        playButton = this.findViewById(R.id.play_button_play_list)
+        previousButton = this.findViewById(R.id.previous_button_play_list)
+        nextButton = this.findViewById(R.id.next_button_play_list)
+
+        playing = intent.getBooleanExtra("PLAYING", false)
 
         val arrayListOfSongs = DataBase.getListOfSongs()
         arrayAdapter = ArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
@@ -92,6 +101,40 @@ class PlayListActivity : AppCompatActivity() {
             arrayAdapter.filter.filter(playListTextFilter.text.toString())
             playListView.adapter = arrayAdapter
             updateListView()
+        }
+
+        playButton.setOnClickListener {
+            if (currentSongName != null && currentSongName != "") {
+                if (!playing) {
+                    Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
+                    sendBroadcastToService(BroadcastMessage.START_PLAYING)
+                    playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
+                } else {
+                    Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
+                    sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
+                    playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
+                }
+            }
+        }
+
+        previousButton.setOnClickListener {
+            Toast.makeText(this, "Playing previous song", Toast.LENGTH_SHORT).show()
+            sendBroadcastToService(BroadcastMessage.PREVIOUS_SONG)
+        }
+
+        nextButton.setOnClickListener {
+            Toast.makeText(this, "Playing next song", Toast.LENGTH_SHORT).show()
+            sendBroadcastToService(BroadcastMessage.NEXT_SONG)
+        }
+
+        updateViews()
+    }
+
+    private fun updateViews() {
+        if (playing) {
+            playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
+        } else {
+            playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
         }
     }
 
@@ -126,11 +169,13 @@ class PlayListActivity : AppCompatActivity() {
                     } else if (broadcast == BroadcastMessage.NEXT_SONG.toString()) {
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01.toString()) {
                         if (extras != null) {
+                            playing = extras.getBoolean("playing")
                             updateCurrentSongInteger(extras.getInt("currentSongInteger"))
                             currentSongName = extras.getString("currentSongName").toString()
                             currentSongLength = extras.getLong("currentSongLength")
                             listOfSongsSize = extras.getInt("listOfSongsSize")
                         }
+                        updateViews()
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02.toString()) {
                         if (extras != null) {
                         }

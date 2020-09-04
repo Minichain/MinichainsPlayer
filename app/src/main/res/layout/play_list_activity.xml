@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -7,25 +8,95 @@
     android:background="@color/colorPrimaryDark"
     tools:context=".PlayListActivity"
     android:focusable="true"
-    android:focusableInTouchMode="true">
+    android:focusableInTouchMode="true"
+    android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/play_list_text_filter"
+    <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="50dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:textColor="@color/white"
-        android:hint="Playlist Filter"
-        android:textColorHint="@color/grey"
-        tools:ignore="MissingConstraints" />
+        android:layout_height="0dp"
+        android:layout_weight="0.08"
+        >
+        <EditText
+            android:id="@+id/play_list_text_filter"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:textColor="@color/white"
+            android:hint="Playlist Filter"
+            android:textColorHint="@color/grey"
+            tools:ignore="MissingConstraints"
+            />
+    </RelativeLayout>
 
-    <ListView
-        android:id="@+id/play_list_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/play_list_text_filter" />
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.82"
+        >
+        <ListView
+            android:id="@+id/play_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintHeight_percent="0.7"
+            />
+    </RelativeLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            >
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.3"
+                >
+                <ImageButton
+                    android:id="@+id/previous_button_play_list"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="30dp"
+                    android:layout_centerInParent="true"
+                    android:background="@drawable/baseline_skip_previous_white_36"
+                    />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.3"
+                >
+                <ImageButton
+                    android:id="@+id/play_button_play_list"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="25dp"
+                    android:layout_centerInParent="true"
+                    android:foregroundGravity="center_horizontal"
+                    android:background="@drawable/baseline_play_arrow_white_48"
+                    />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.3"
+                >
+                <ImageButton
+                    android:id="@+id/next_button_play_list"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="30dp"
+                    android:layout_centerInParent="true"
+                    android:background="@drawable/baseline_skip_next_white_36"
+                    />
+            </RelativeLayout>
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</LinearLayout>

@@ -20,17 +20,17 @@ import kotlin.system.exitProcess
 class MinichainsPlayerActivity : AppCompatActivity() {
     private lateinit var minichainsPlayerBroadcastReceiver: MinichainsPlayerActivityBroadcastReceiver
 
-    lateinit var playButton: ImageButton
-    lateinit var previousButton: ImageButton
-    lateinit var nextButton: ImageButton
-    lateinit var shuffleButton: ImageButton
-    lateinit var currentSongTexView: TextView
-    lateinit var currentSongLengthTexView: TextView
-    lateinit var currentSongCurrentTimeTexView: TextView
-    lateinit var currentSongTimeBarSeekBar: SeekBar
-    lateinit var currentSongIntegerTextView: TextView
-    lateinit var showPlayListImageButton: ImageButton
-    lateinit var appVersionNumberTextView: TextView
+    private lateinit var playButton: ImageButton
+    private lateinit var previousButton: ImageButton
+    private lateinit var nextButton: ImageButton
+    private lateinit var shuffleButton: ImageButton
+    private lateinit var currentSongTexView: TextView
+    private lateinit var currentSongLengthTexView: TextView
+    private lateinit var currentSongCurrentTimeTexView: TextView
+    private lateinit var currentSongTimeBarSeekBar: SeekBar
+    private lateinit var currentSongIntegerTextView: TextView
+    private lateinit var showPlayListImageButton: ImageButton
+    private lateinit var appVersionNumberTextView: TextView
 
     private var playing = false
     private var currentSongTime: Int = 0
@@ -182,6 +182,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             this.onPause()
             intent = Intent(applicationContext, PlayListActivity::class.java)
             intent.putExtra("CURRENT_SONG_INTEGER", currentSongInteger)
+            intent.putExtra("PLAYING", playing)
             startActivity(intent)
         }
 
