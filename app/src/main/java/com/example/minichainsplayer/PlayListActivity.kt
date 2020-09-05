@@ -22,12 +22,14 @@ class PlayListActivity : AppCompatActivity() {
     private lateinit var previousButton: ImageButton
     private lateinit var nextButton: ImageButton
     private lateinit var currentSongTexView: TextView
+    private lateinit var currentSongTimeBarSeekBar: SeekBar
 
     private var currentSongInteger = -1
     private var currentSongName = ""
     private var currentSongLength: Long = -1
     private var listOfSongsSize = -1
     private var playing = false
+    private var currentSongTime: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,8 +76,14 @@ class PlayListActivity : AppCompatActivity() {
         playButton = this.findViewById(R.id.play_button_play_list)
         previousButton = this.findViewById(R.id.previous_button_play_list)
         nextButton = this.findViewById(R.id.next_button_play_list)
+        currentSongTexView = this.findViewById(R.id.current_song_name_play_list)
+        currentSongTexView.isSelected = true
+        currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar_play_list)
 
         playing = intent.getBooleanExtra("PLAYING", false)
+        currentSongName = intent.getStringExtra("CURRENT_SONG_NAME").toString()
+        currentSongTime = intent.getIntExtra("CURRENT_SONG_TIME", 0)
+        currentSongLength = intent.getLongExtra("CURRENT_SONG_LENGTH", 0)
 
         val arrayListOfSongs = DataBase.getListOfSongs()
         arrayAdapter = ArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
@@ -127,10 +135,36 @@ class PlayListActivity : AppCompatActivity() {
             sendBroadcastToService(BroadcastMessage.NEXT_SONG)
         }
 
+        currentSongTimeBarSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
+            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                var bundle = Bundle()
+                currentSongTime = ((currentSongTimeBarSeekBar.progress.toDouble() / 100.0) * currentSongLength.toDouble()).toInt()
+                bundle.putInt("currentSongTime", currentSongTime)
+                sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
+            }
+        })
+
         updateViews()
     }
 
     private fun updateViews() {
+        if (currentSongTexView.text != currentSongName) {
+            currentSongTexView.text = currentSongName
+        }
+
+        if (currentSongLength > 0) {
+            currentSongTimeBarSeekBar.progress = ((currentSongTime.toFloat()  / currentSongLength.toFloat()) * 100f).toInt()
+        }
+
         if (playing) {
             playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
         } else {
@@ -178,7 +212,9 @@ class PlayListActivity : AppCompatActivity() {
                         updateViews()
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02.toString()) {
                         if (extras != null) {
+                            currentSongTime = extras.getInt("currentSongTime")
                         }
+                        updateViews()
                     } else {
                     }
                 }

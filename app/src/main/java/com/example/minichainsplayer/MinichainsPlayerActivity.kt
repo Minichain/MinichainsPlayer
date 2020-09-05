@@ -183,6 +183,9 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             intent = Intent(applicationContext, PlayListActivity::class.java)
             intent.putExtra("CURRENT_SONG_INTEGER", currentSongInteger)
             intent.putExtra("PLAYING", playing)
+            intent.putExtra("CURRENT_SONG_NAME", currentSongName)
+            intent.putExtra("CURRENT_SONG_TIME", currentSongTime)
+            intent.putExtra("CURRENT_SONG_LENGTH", currentSongLength)
             startActivity(intent)
         }
 
