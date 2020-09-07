@@ -18,6 +18,7 @@ class PlayListActivity : AppCompatActivity() {
     private lateinit var playListView: ListView
     private lateinit var arrayAdapter: ArrayAdapter<String?>
     private lateinit var playListTextFilter: EditText
+    private lateinit var playListPlayerRelativeLayout: RelativeLayout
     private lateinit var playButton: ImageButton
     private lateinit var previousButton: ImageButton
     private lateinit var nextButton: ImageButton
@@ -71,8 +72,11 @@ class PlayListActivity : AppCompatActivity() {
 
         registerPlayListActivityBroadcastReceiver()
 
-        playListView = this.findViewById(R.id.play_list_view)
         playListTextFilter = this.findViewById(R.id.play_list_text_filter)
+
+        playListView = this.findViewById(R.id.play_list_view)
+
+        playListPlayerRelativeLayout = this.findViewById(R.id.play_list_player_relative_layout)
         playButton = this.findViewById(R.id.play_button_play_list)
         previousButton = this.findViewById(R.id.previous_button_play_list)
         nextButton = this.findViewById(R.id.next_button_play_list)
