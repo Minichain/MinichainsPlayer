@@ -15,6 +15,7 @@ import androidx.core.widget.addTextChangedListener
 class PlayListActivity : AppCompatActivity() {
     private lateinit var playListBroadcastReceiver: PlayListActivityBroadcastReceiver
 
+    private lateinit var playListActivity: LinearLayout
     private lateinit var playListView: ListView
     private lateinit var arrayAdapter: ArrayAdapter<String?>
     private lateinit var playListTextFilter: EditText
@@ -71,6 +72,8 @@ class PlayListActivity : AppCompatActivity() {
         setContentView(R.layout.play_list_activity)
 
         registerPlayListActivityBroadcastReceiver()
+
+        playListActivity = this.findViewById(R.id.play_list_activity)
 
         playListTextFilter = this.findViewById(R.id.play_list_text_filter)
 
@@ -156,6 +159,21 @@ class PlayListActivity : AppCompatActivity() {
                 sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
             }
         })
+
+        playListActivity.addOnLayoutChangeListener { view, i, i2, i3, i4, i5, i6, i7, i8 ->
+//            Log.l("OnLayoutChangeListener. bottom: " + i4 + ", oldBottom: " + i8)
+            if (i4 < i8) {
+                playListPlayerRelativeLayout.layoutParams = LinearLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.FILL_PARENT, 0, 0f
+                )
+            } else if (i4 > i8) {
+                playListPlayerRelativeLayout.layoutParams = LinearLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.FILL_PARENT, 0, 0.25f
+                )
+            } else {
+                //Size did not change
+            }
+        }
 
         updateViews()
     }
