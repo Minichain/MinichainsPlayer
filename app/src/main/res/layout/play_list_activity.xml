@@ -39,7 +39,15 @@
             android:id="@+id/play_list_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_constraintHeight_percent="0.7"
+            />
+        <TextView
+            android:id="@+id/play_list_empty_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="20dp"
+            android:text="Empty List"
             />
     </RelativeLayout>
 

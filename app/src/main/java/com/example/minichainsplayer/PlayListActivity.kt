@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -25,6 +26,7 @@ class PlayListActivity : AppCompatActivity() {
     private lateinit var nextButton: ImageButton
     private lateinit var currentSongTexView: TextView
     private lateinit var currentSongTimeBarSeekBar: SeekBar
+    private lateinit var playListEmptyTextView: TextView
 
     private var currentSongInteger = -1
     private var currentSongName = ""
@@ -78,6 +80,7 @@ class PlayListActivity : AppCompatActivity() {
         playListTextFilter = this.findViewById(R.id.play_list_text_filter)
 
         playListView = this.findViewById(R.id.play_list_view)
+        playListEmptyTextView = this.findViewById(R.id.play_list_empty_text_view)
 
         playListPlayerRelativeLayout = this.findViewById(R.id.play_list_player_relative_layout)
         playButton = this.findViewById(R.id.play_button_play_list)
@@ -93,89 +96,95 @@ class PlayListActivity : AppCompatActivity() {
         currentSongLength = intent.getLongExtra("CURRENT_SONG_LENGTH", 0)
 
         val arrayListOfSongs = DataBase.getListOfSongs()
-        arrayAdapter = ArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
-        playListView.adapter = arrayAdapter
-
-        playListView.setOnItemClickListener { adapterView, view, i, l ->
-            var bundle = Bundle()
-            val currentSongName = playListView.adapter.getItem(i).toString()
-            bundle.putString("currentSongName", currentSongName)
-            sendBroadcastToService(BroadcastMessage.START_PLAYING_SONG, bundle)
-        }
-
-        playListView.post(Runnable {
-            updateCurrentSongInteger(intent.getIntExtra("CURRENT_SONG_INTEGER", -1))
-            playListView.setSelectionFromTop(currentSongInteger, playListView.height / 2)
-        })
-
-        playListView.setOnScrollChangeListener { view, i, i2, i3, i4 ->
-            updateListView()
-        }
-
-        playListTextFilter.addTextChangedListener {
-            arrayAdapter.filter.filter(playListTextFilter.text.toString())
+        if (arrayListOfSongs.isNullOrEmpty() || arrayListOfSongs[0] == null) {
+            playListEmptyTextView.visibility = View.VISIBLE
+            playListView.visibility = View.GONE
+        } else {
+            playListEmptyTextView.visibility = View.GONE
+            arrayAdapter = ArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
             playListView.adapter = arrayAdapter
-            updateListView()
-        }
 
-        playButton.setOnClickListener {
-            if (currentSongName != null && currentSongName != "") {
-                if (!playing) {
-                    Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
-                    sendBroadcastToService(BroadcastMessage.START_PLAYING)
-                    playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
-                } else {
-                    Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
-                    sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
-                    playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
+            playListView.setOnItemClickListener { adapterView, view, i, l ->
+                var bundle = Bundle()
+                val currentSongName = playListView.adapter.getItem(i).toString()
+                bundle.putString("currentSongName", currentSongName)
+                sendBroadcastToService(BroadcastMessage.START_PLAYING_SONG, bundle)
+            }
+
+            playListView.post(Runnable {
+                updateCurrentSongInteger(intent.getIntExtra("CURRENT_SONG_INTEGER", -1))
+                playListView.setSelectionFromTop(currentSongInteger, playListView.height / 2)
+            })
+
+            playListView.setOnScrollChangeListener { view, i, i2, i3, i4 ->
+                updateListView()
+            }
+
+            playListTextFilter.addTextChangedListener {
+                arrayAdapter.filter.filter(playListTextFilter.text.toString())
+                playListView.adapter = arrayAdapter
+                updateListView()
+            }
+
+            playButton.setOnClickListener {
+                if (currentSongName != null && currentSongName != "") {
+                    if (!playing) {
+                        Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
+                        sendBroadcastToService(BroadcastMessage.START_PLAYING)
+                        playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
+                    } else {
+                        Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
+                        sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
+                        playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
+                    }
                 }
             }
-        }
 
-        previousButton.setOnClickListener {
-            Toast.makeText(this, "Playing previous song", Toast.LENGTH_SHORT).show()
-            sendBroadcastToService(BroadcastMessage.PREVIOUS_SONG)
-        }
-
-        nextButton.setOnClickListener {
-            Toast.makeText(this, "Playing next song", Toast.LENGTH_SHORT).show()
-            sendBroadcastToService(BroadcastMessage.NEXT_SONG)
-        }
-
-        currentSongTimeBarSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-
-            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
-
+            previousButton.setOnClickListener {
+                Toast.makeText(this, "Playing previous song", Toast.LENGTH_SHORT).show()
+                sendBroadcastToService(BroadcastMessage.PREVIOUS_SONG)
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar) {
-
+            nextButton.setOnClickListener {
+                Toast.makeText(this, "Playing next song", Toast.LENGTH_SHORT).show()
+                sendBroadcastToService(BroadcastMessage.NEXT_SONG)
             }
 
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                var bundle = Bundle()
-                currentSongTime = ((currentSongTimeBarSeekBar.progress.toDouble() / 100.0) * currentSongLength.toDouble()).toInt()
-                bundle.putInt("currentSongTime", currentSongTime)
-                sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
-            }
-        })
+            currentSongTimeBarSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 
-        playListActivity.addOnLayoutChangeListener { view, i, i2, i3, i4, i5, i6, i7, i8 ->
+                override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar) {
+
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar) {
+                    var bundle = Bundle()
+                    currentSongTime = ((currentSongTimeBarSeekBar.progress.toDouble() / 100.0) * currentSongLength.toDouble()).toInt()
+                    bundle.putInt("currentSongTime", currentSongTime)
+                    sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
+                }
+            })
+
+            playListActivity.addOnLayoutChangeListener { view, i, i2, i3, i4, i5, i6, i7, i8 ->
 //            Log.l("OnLayoutChangeListener. bottom: " + i4 + ", oldBottom: " + i8)
-            if (i4 < i8) {
-                playListPlayerRelativeLayout.layoutParams = LinearLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.FILL_PARENT, 0, 0f
-                )
-            } else if (i4 > i8) {
-                playListPlayerRelativeLayout.layoutParams = LinearLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.FILL_PARENT, 0, 0.25f
-                )
-            } else {
-                //Size did not change
+                if (i4 < i8) {
+                    playListPlayerRelativeLayout.layoutParams = LinearLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.FILL_PARENT, 0, 0f
+                    )
+                } else if (i4 > i8) {
+                    playListPlayerRelativeLayout.layoutParams = LinearLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.FILL_PARENT, 0, 0.25f
+                    )
+                } else {
+                    //Size did not change
+                }
             }
-        }
 
-        updateViews()
+            updateViews()
+        }
     }
 
     private fun updateViews() {
