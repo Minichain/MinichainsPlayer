@@ -148,11 +148,10 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         playButton.setOnClickListener {
             if (currentSongName != null && currentSongName != "") {
                 if (!playing) {
-                    Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
                     sendBroadcastToService(BroadcastMessage.START_PLAYING)
                     playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
                 } else {
-                    Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.pausing), Toast.LENGTH_SHORT).show()
                     sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
                     playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
                 }
@@ -160,20 +159,18 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         }
 
         previousButton.setOnClickListener {
-            Toast.makeText(this, "Playing previous song", Toast.LENGTH_SHORT).show()
             sendBroadcastToService(BroadcastMessage.PREVIOUS_SONG)
         }
 
         nextButton.setOnClickListener {
-            Toast.makeText(this, "Playing next song", Toast.LENGTH_SHORT).show()
             sendBroadcastToService(BroadcastMessage.NEXT_SONG)
         }
 
         shuffleButton.setOnClickListener {
             if (shuffle) {
-                Toast.makeText(this, "Shuffle disabled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.shuffle_disabled), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "Shuffle enabled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.shuffle_enabled), Toast.LENGTH_SHORT).show()
             }
             sendBroadcastToService(BroadcastMessage.SHUFFLE)
         }

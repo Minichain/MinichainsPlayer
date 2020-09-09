@@ -24,7 +24,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:textColor="@color/white"
-            android:hint="Playlist Filter"
+            android:hint="@string/play_list_filter"
             android:textColorHint="@color/grey"
             tools:ignore="MissingConstraints"
             />
@@ -47,7 +47,7 @@
             android:gravity="center"
             android:textColor="@color/white"
             android:textSize="20dp"
-            android:text="Empty List"
+            android:text="@string/empty_list"
             />
     </RelativeLayout>
 

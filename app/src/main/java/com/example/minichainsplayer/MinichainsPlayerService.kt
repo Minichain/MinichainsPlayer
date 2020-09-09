@@ -259,6 +259,7 @@ class MinichainsPlayerService : Service() {
             mediaPlayer?.setOnPreparedListener {
                 mediaPlayer?.seekTo(songTime)
                 mediaPlayer?.start()
+                Toast.makeText(this, getString(R.string.playing_song, currentSongName), Toast.LENGTH_SHORT).show()
                 mediaPlayer?.setOnCompletionListener {
                     if (currentSongTime > 0) {
                         next()
