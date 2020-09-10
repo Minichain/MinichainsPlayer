@@ -3,10 +3,7 @@ package com.example.minichainsplayer
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import com.afollestad.materialdialogs.MaterialDialog
@@ -19,6 +16,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var musicPathEditText: EditText
     private lateinit var openFileChooserInternalStorageImageButton: ImageButton
     private lateinit var openFileChooserExternalStorageImageButton: ImageButton
+    private lateinit var openFileChooserExternalStorageRelativeLayout: RelativeLayout
     private lateinit var addMusicPathImageButton: ImageButton
     private lateinit var fillPlayListButton: Button
     private lateinit var clearPlayListButton: Button
@@ -55,6 +53,7 @@ class SettingsActivity : AppCompatActivity() {
         musicPathEditText = this.findViewById(R.id.music_path_edit_text)
         openFileChooserInternalStorageImageButton = this.findViewById(R.id.open_file_chooser_internal_storage)
         openFileChooserExternalStorageImageButton = this.findViewById(R.id.open_file_chooser_external_storage)
+        openFileChooserExternalStorageRelativeLayout = this.findViewById(R.id.open_file_chooser_external_storage_relative_layout)
         addMusicPathImageButton = this.findViewById(R.id.add_music_path)
         fillPlayListButton = this.findViewById(R.id.fill_play_list_button)
         clearPlayListButton = this.findViewById(R.id.clear_play_list_button)
@@ -78,7 +77,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         if (getExternalFilesDirs(null).size <= 1) {
-            openFileChooserExternalStorageImageButton.visibility = View.GONE
+            openFileChooserExternalStorageRelativeLayout.visibility = View.GONE
         } else {
             openFileChooserExternalStorageImageButton.setOnClickListener {
                 showFoldersDialog(getExternalFilesDirs(null)[1].toString())
