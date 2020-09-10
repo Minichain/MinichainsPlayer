@@ -72,11 +72,8 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showFoldersDialog() {
-        foldersDialog = MaterialDialog(this)
-        val initialFolder = File("/sdcard", "")
-
-        foldersDialog.show {
-            folderChooser(context, initialDirectory = initialFolder) {
+        MaterialDialog(this).show {
+            folderChooser(context, initialDirectory = File(DataBase.getMusicPath())) {
                     dialog, folder ->
                 Log.l("Folder Selected: " + folder)
                 musicPathEditText.setText(folder.toString())

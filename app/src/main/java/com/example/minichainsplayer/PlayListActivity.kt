@@ -129,11 +129,9 @@ class PlayListActivity : AppCompatActivity() {
             playButton.setOnClickListener {
                 if (currentSongName != null && currentSongName != "") {
                     if (!playing) {
-                        Toast.makeText(this, "Playing Song", Toast.LENGTH_SHORT).show()
                         sendBroadcastToService(BroadcastMessage.START_PLAYING)
                         playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
                     } else {
-                        Toast.makeText(this, "Pausing Song", Toast.LENGTH_SHORT).show()
                         sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
                         playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
                     }
@@ -141,12 +139,10 @@ class PlayListActivity : AppCompatActivity() {
             }
 
             previousButton.setOnClickListener {
-                Toast.makeText(this, "Playing previous song", Toast.LENGTH_SHORT).show()
                 sendBroadcastToService(BroadcastMessage.PREVIOUS_SONG)
             }
 
             nextButton.setOnClickListener {
-                Toast.makeText(this, "Playing next song", Toast.LENGTH_SHORT).show()
                 sendBroadcastToService(BroadcastMessage.NEXT_SONG)
             }
 

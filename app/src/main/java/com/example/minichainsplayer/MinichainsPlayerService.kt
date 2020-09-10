@@ -75,10 +75,13 @@ class MinichainsPlayerService : Service() {
     private fun init() {
         DataBase.dataBaseHelper = FeedReaderDbHelper(this)
 
+        val dirs = getExternalFilesDirs(null)
         if (DataBase.getMusicPath().isNullOrEmpty()) {
-//            DataBase.setMusicPath("/sdcard/Music")
-            DataBase.setMusicPath("/storage")
-//            DataBase.setMusicPath(String().plus("/storage/3230-3632").plus("/Music/Music"))
+            if (dirs[1] != null) {
+                DataBase.setMusicPath(dirs[1].toString())
+            } else if (dirs[0] != null) {
+                DataBase.setMusicPath(dirs[0].toString())
+            }
         }
         Log.l("Music Path: " + DataBase.getMusicPath())
 
@@ -273,6 +276,11 @@ class MinichainsPlayerService : Service() {
         }
     }
 
+    private fun pause() {
+        mediaPlayer?.pause()
+        Toast.makeText(this, getString(R.string.pausing), Toast.LENGTH_SHORT).show()
+    }
+
     private fun pauseAndRelease() {
         mediaPlayer?.pause()
         mediaPlayer?.release()
@@ -337,7 +345,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun fillPlayList() {
-        Toast.makeText(this, "Filling playlist with songs...", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.filling_play_list), Toast.LENGTH_LONG).show()
         val thread: Thread = object : Thread() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
@@ -352,7 +360,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun clearPlayList() {
-        Toast.makeText(this, "Clearing playlist...", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.clearing_play_list), Toast.LENGTH_LONG).show()
         mediaPlayer?.pause()
         listOfSongs?.clear()
         setCurrentSongName("")
@@ -466,13 +474,13 @@ class MinichainsPlayerService : Service() {
                         play()
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: STOP_PLAYING")
-                        mediaPlayer?.pause()
+                        pause()
                     } else if (broadcast == BroadcastMessage.START_STOP_PLAYING_NOTIFICATION.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: START_STOP_PLAYING_NOTIFICATION")
                         if (mediaPlayer != null && !mediaPlayer?.isPlaying!!) {
                             play()
                         } else {
-                            mediaPlayer?.pause()
+                            pause()
                         }
                     } else if (broadcast == BroadcastMessage.PREVIOUS_SONG.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: PREVIOUS_SONG")
@@ -493,7 +501,7 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_MEDIA_BUTTON")
                     } else if (broadcast == Intent.ACTION_HEADSET_PLUG) {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_HEADSET_PLUG")
-                        mediaPlayer?.pause()
+                        pause()
                     } else if (broadcast == BroadcastMessage.FILL_PLAYLIST.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: FILL_PLAYLIST")
                         fillPlayList()

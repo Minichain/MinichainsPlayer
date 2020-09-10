@@ -2,9 +2,11 @@
     <string name="app_name">Minichain\'s Player</string>
 
     <string name="clear_play_list">Clear playlist</string>
+    <string name="clearing_play_list">Clearing playlist…</string>
     <string name="close_app">Close App</string>
     <string name="empty_list">Empty list</string>
     <string name="fill_play_list">Fill playlist</string>
+    <string name="filling_play_list">Filling playlist with songs…</string>
     <string name="music_path">Music path</string>
     <string name="pausing">Pausing song</string>
     <string name="play_list_filter">Search for a song</string>
