@@ -77,9 +77,9 @@ class MinichainsPlayerService : Service() {
 
         val dirs = getExternalFilesDirs(null)
         if (DataBase.getMusicPath().isNullOrEmpty()) {
-            if (dirs[1] != null) {
+            if (dirs.size > 1 && dirs[1] != null) {
                 DataBase.setMusicPath(dirs[1].toString())
-            } else if (dirs[0] != null) {
+            } else if (dirs.isNotEmpty() && dirs[0] != null) {
                 DataBase.setMusicPath(dirs[0].toString())
             }
         }
