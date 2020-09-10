@@ -2,9 +2,11 @@ package com.example.minichainsplayer
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import com.afollestad.materialdialogs.MaterialDialog
@@ -12,12 +14,14 @@ import com.afollestad.materialdialogs.files.folderChooser
 import java.io.File
 
 class SettingsActivity : AppCompatActivity() {
-    lateinit var foldersDialog: MaterialDialog
+    private lateinit var foldersDialog: MaterialDialog
 
-    lateinit var musicPathEditText: EditText
-    lateinit var openFileDialogButton: ImageButton
-    lateinit var fillPlayListButton: Button
-    lateinit var clearPlayListButton: Button
+    private lateinit var musicPathEditText: EditText
+    private lateinit var openFileChooserInternalStorageImageButton: ImageButton
+    private lateinit var openFileChooserExternalStorageImageButton: ImageButton
+    private lateinit var addMusicPathImageButton: ImageButton
+    private lateinit var fillPlayListButton: Button
+    private lateinit var clearPlayListButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +53,9 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.settings_activity)
 
         musicPathEditText = this.findViewById(R.id.music_path_edit_text)
-        openFileDialogButton = this.findViewById(R.id.open_file_dialog_button)
+        openFileChooserInternalStorageImageButton = this.findViewById(R.id.open_file_chooser_internal_storage)
+        openFileChooserExternalStorageImageButton = this.findViewById(R.id.open_file_chooser_external_storage)
+        addMusicPathImageButton = this.findViewById(R.id.add_music_path)
         fillPlayListButton = this.findViewById(R.id.fill_play_list_button)
         clearPlayListButton = this.findViewById(R.id.clear_play_list_button)
 
@@ -66,18 +72,32 @@ class SettingsActivity : AppCompatActivity() {
             DataBase.setMusicPath(musicPathEditText.text.toString())
         }
 
-        openFileDialogButton.setOnClickListener {
-            showFoldersDialog()
+
+        openFileChooserInternalStorageImageButton.setOnClickListener {
+            showFoldersDialog(getExternalFilesDirs(null)[0].toString())
+        }
+
+        if (getExternalFilesDirs(null).size <= 1) {
+            openFileChooserExternalStorageImageButton.visibility = View.GONE
+        } else {
+            openFileChooserExternalStorageImageButton.setOnClickListener {
+                showFoldersDialog(getExternalFilesDirs(null)[1].toString())
+            }
+        }
+
+        addMusicPathImageButton.setOnClickListener {
+            Toast.makeText(this, getString(R.string.music_path_added), Toast.LENGTH_LONG).show()
+            DataBase.setMusicPath(musicPathEditText.text.toString())
         }
     }
 
-    private fun showFoldersDialog() {
+    private fun showFoldersDialog(directory: String) {
+        val initialDirectory = File(directory)
         MaterialDialog(this).show {
-            folderChooser(context, initialDirectory = File(DataBase.getMusicPath())) {
+            folderChooser(context, initialDirectory = initialDirectory) {
                     dialog, folder ->
                 Log.l("Folder Selected: " + folder)
                 musicPathEditText.setText(folder.toString())
-                DataBase.setMusicPath(folder.toString())
             }
         }
     }
