@@ -102,35 +102,53 @@ class DataBase {
         }
 
         fun setMusicPath(musicPath: String) {
+            val dataBase = dataBaseHelper.writableDatabase
             try {
-                val dataBase = dataBaseHelper.writableDatabase
-
                 if (dataBase != null) {
                     val values = ContentValues().apply {
                         put(COLUMN_SETTING, "musicPath")
                         put(COLUMN_SETTING_VALUE, musicPath)
                     }
 
-                    if (getMusicPath().isNullOrEmpty()) {
-                        dataBase?.insert(SETTINGS_TABLE_NAME, null, values)
-                        Log.l("DataBaseLog: Music Path '$musicPath' inserted into the database.")
-                    } else {
-                        dataBase?.update(SETTINGS_TABLE_NAME, values, "$COLUMN_SETTING = 'musicPath'", null)
-                        Log.l("DataBaseLog: Music Pathn '$musicPath' is already in the database. Updating it.")
-                    }
+                    dataBase?.insert(SETTINGS_TABLE_NAME, null, values)
+                    Log.l("DataBaseLog: Music Path '$musicPath' inserted into the database.")
                 }
             } catch (e: Exception) {
                 Log.e("DataBaseLog: Error inserting music path '$musicPath' into database.")
             }
         }
 
-        fun getMusicPath(): String {
-            var musicPath = ""
+        fun deleteMusicPath(musicPath: String) {
             val dataBase = dataBaseHelper.writableDatabase
-            val cursor = dataBase.rawQuery("SELECT $COLUMN_SETTING_VALUE FROM ${SETTINGS_TABLE_NAME} " +
+            try {
+                dataBase.delete(SETTINGS_TABLE_NAME, "$COLUMN_SETTING_VALUE=?", arrayOf(musicPath))
+                Log.l("DataBaseLog: Deleting music path '$musicPath'.")
+            } catch (e: Exception) {
+                Log.e("DataBaseLog: Error deleting music path '$musicPath'.")
+            }
+        }
+
+        fun getMusicPath(): String {
+            return if (getMusicPaths().isNotEmpty()) {
+                getMusicPaths()[0]
+            } else {
+                null.toString()
+            }
+        }
+
+        fun getMusicPaths(): ArrayList<String> {
+            var musicPath = ArrayList<String>()
+            val dataBase = dataBaseHelper.writableDatabase
+            val cursor = dataBase.rawQuery(
+                "SELECT $COLUMN_SETTING_VALUE FROM ${SETTINGS_TABLE_NAME} " +
                     "WHERE $COLUMN_SETTING = 'musicPath'", null)
             if (cursor.moveToFirst()) {
-                musicPath = cursor.getString(0)
+                musicPath.add(cursor.getString(0))
+                var i = 0
+                while (cursor.moveToNext()) {
+                    i++
+                    musicPath.add(cursor.getString(0))
+                }
             }
             cursor.close()
             return musicPath

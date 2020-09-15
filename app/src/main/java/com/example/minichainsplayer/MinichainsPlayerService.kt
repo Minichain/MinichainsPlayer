@@ -9,6 +9,8 @@ import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment.getExternalStorageDirectory
+import android.os.Environment.getStorageDirectory
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -75,12 +77,11 @@ class MinichainsPlayerService : Service() {
     private fun init() {
         DataBase.dataBaseHelper = FeedReaderDbHelper(this)
 
-        val dirs = getExternalFilesDirs(null)
-        if (DataBase.getMusicPath().isNullOrEmpty()) {
-            if (dirs.size > 1 && dirs[1] != null) {
-                DataBase.setMusicPath(dirs[1].toString())
-            } else if (dirs.isNotEmpty() && dirs[0] != null) {
-                DataBase.setMusicPath(dirs[0].toString())
+        if (DataBase.getMusicPath().isEmpty()) {
+            if (getStorageDirectory().exists()) {
+                DataBase.setMusicPath(getStorageDirectory().path)
+            } else if (getExternalStorageDirectory().exists()) {
+                DataBase.setMusicPath(getExternalStorageDirectory().path)
             }
         }
         Log.l("Music Path: " + DataBase.getMusicPath())
@@ -349,7 +350,7 @@ class MinichainsPlayerService : Service() {
         val thread: Thread = object : Thread() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
-                fillDataBase(DataBase.getMusicPath())
+                fillDataBase(DataBase.getMusicPaths())
                 loadSongListFromDataBase()
                 updateCurrentSongInfo()
                 Log.l("listOfSongs loaded. Time elapsed: " + (System.currentTimeMillis() - currentTimeMillis) + " ms")
@@ -370,7 +371,15 @@ class MinichainsPlayerService : Service() {
         DataBase.clearSongListTable()
     }
 
+    private fun fillDataBase(rootPaths: ArrayList<String>) {
+        Log.l("Filling database with songs. rootPaths size: ${rootPaths.size}")
+        for (i in 0 until rootPaths?.size!! step 1) {
+            fillDataBase(rootPaths[i])
+        }
+    }
+
     private fun fillDataBase(rootPath: String) {
+        Log.l("Filling database with songs from: '$rootPath'")
         try {
             val rootFolder = File(rootPath)
             if (!rootFolder.exists()) {

@@ -31,19 +31,6 @@
                     />
             </RelativeLayout>
             <RelativeLayout
-                android:id="@+id/open_file_chooser_external_storage_relative_layout"
-                android:layout_width="0dp"
-                android:layout_height="fill_parent"
-                android:layout_weight="0.16"
-                >
-                <ImageButton
-                    android:id="@+id/open_file_chooser_external_storage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:background="@drawable/baseline_sd_storage_white_48"
-                    />
-            </RelativeLayout>
-            <RelativeLayout
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 android:layout_weight="0.52"
@@ -73,6 +60,14 @@
             </RelativeLayout>
         </LinearLayout>
     </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/music_paths_parent_linear_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+    </LinearLayout>
 
     <RelativeLayout
         android:layout_width="fill_parent"

@@ -9,6 +9,7 @@
     <string name="filling_play_list">Llenando lista…</string>
     <string name="music_path">Ruta</string>
     <string name="music_path_added">Ruta añadida a la lista</string>
+    <string name="music_path_removed">Ruta eliminada</string>
     <string name="pausing">Canción en pausa</string>
     <string name="play_list_filter">Busca una canción</string>
     <string name="playing_song">Está sonando \"%1$s\"</string>

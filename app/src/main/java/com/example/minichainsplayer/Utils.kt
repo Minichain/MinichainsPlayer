@@ -1,5 +1,7 @@
 package com.example.minichainsplayer
 
+import android.content.res.Resources
+
 class Utils {
     companion object {
         fun millisecondsToHoursMinutesAndSeconds(milliseconds: Long?): String {
@@ -30,6 +32,14 @@ class Utils {
             returnString = returnString.plus(seconds)
 
             return returnString
+        }
+
+        fun dpToPx(dp: Float): Int {
+            return (dp * Resources.getSystem().displayMetrics.density).toInt()
+        }
+
+        fun pxToDp(px: Int): Float {
+            return (px.toFloat() / Resources.getSystem().displayMetrics.density)
         }
     }
 }

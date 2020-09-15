@@ -1,25 +1,27 @@
 package com.example.minichainsplayer
 
 import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
-import android.view.View
+import android.provider.DocumentsContract
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.ViewGroup
 import android.widget.*
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.files.folderChooser
-import java.io.File
+
 
 class SettingsActivity : AppCompatActivity() {
-    private lateinit var foldersDialog: MaterialDialog
-
     private lateinit var musicPathEditText: EditText
-    private lateinit var openFileChooserInternalStorageImageButton: ImageButton
-    private lateinit var openFileChooserExternalStorageImageButton: ImageButton
-    private lateinit var openFileChooserExternalStorageRelativeLayout: RelativeLayout
+    private lateinit var openFileChooserImageButton: ImageButton
     private lateinit var addMusicPathImageButton: ImageButton
     private lateinit var fillPlayListButton: Button
     private lateinit var clearPlayListButton: Button
+    private lateinit var musicPathsParentLinearLayout: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,9 +53,7 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.settings_activity)
 
         musicPathEditText = this.findViewById(R.id.music_path_edit_text)
-        openFileChooserInternalStorageImageButton = this.findViewById(R.id.open_file_chooser_internal_storage)
-        openFileChooserExternalStorageImageButton = this.findViewById(R.id.open_file_chooser_external_storage)
-        openFileChooserExternalStorageRelativeLayout = this.findViewById(R.id.open_file_chooser_external_storage_relative_layout)
+        openFileChooserImageButton = this.findViewById(R.id.open_file_chooser_internal_storage)
         addMusicPathImageButton = this.findViewById(R.id.add_music_path)
         fillPlayListButton = this.findViewById(R.id.fill_play_list_button)
         clearPlayListButton = this.findViewById(R.id.clear_play_list_button)
@@ -67,38 +67,61 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         musicPathEditText.setText(DataBase.getMusicPath())
-        musicPathEditText.addTextChangedListener {
-            DataBase.setMusicPath(musicPathEditText.text.toString())
-        }
 
-
-        openFileChooserInternalStorageImageButton.setOnClickListener {
-            showFoldersDialog(getExternalFilesDirs(null)[0].toString())
-        }
-
-        if (getExternalFilesDirs(null).size <= 1) {
-            openFileChooserExternalStorageRelativeLayout.visibility = View.GONE
-        } else {
-            openFileChooserExternalStorageImageButton.setOnClickListener {
-                showFoldersDialog(getExternalFilesDirs(null)[1].toString())
-            }
+        openFileChooserImageButton.setOnClickListener {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            startActivityForResult(intent, 42)
         }
 
         addMusicPathImageButton.setOnClickListener {
             Toast.makeText(this, getString(R.string.music_path_added), Toast.LENGTH_LONG).show()
             DataBase.setMusicPath(musicPathEditText.text.toString())
+            updateMusicPaths()
+        }
+
+        musicPathsParentLinearLayout = this.findViewById(R.id.music_paths_parent_linear_layout)
+
+        updateMusicPaths()
+    }
+
+    private fun updateMusicPaths() {
+        musicPathsParentLinearLayout.removeAllViews()
+        var musicPaths = DataBase.getMusicPaths()
+        Log.l("AdriHell:: musicPaths size: " + musicPaths.size)
+        for (i in 0 until musicPaths?.size!! step 1) {
+            musicPathsParentLinearLayout.addView(createPathLinearLayout(musicPaths[i]))
         }
     }
 
-    private fun showFoldersDialog(directory: String) {
-        val initialDirectory = File(directory)
-        MaterialDialog(this).show {
-            folderChooser(context, initialDirectory = initialDirectory) {
-                    dialog, folder ->
-                Log.l("Folder Selected: " + folder)
-                musicPathEditText.setText(folder.toString())
-            }
+    private fun createPathLinearLayout(text: String): LinearLayout {
+        var newLinearLayout = LinearLayout(this)
+        newLinearLayout.orientation = LinearLayout.HORIZONTAL
+
+        var imageButton = ImageButton(this)
+        var params = ViewGroup.LayoutParams(Utils.dpToPx(36f), Utils.dpToPx(36f))
+        imageButton.layoutParams = params
+        imageButton.foregroundGravity = Gravity.CENTER
+        imageButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_delete_white_36)
+
+        imageButton.setOnClickListener {
+            Toast.makeText(this, getString(R.string.music_path_removed), Toast.LENGTH_SHORT).show()
+            DataBase.deleteMusicPath(text)
+            updateMusicPaths()
         }
+
+        var textView = TextView(this)
+        params = ViewGroup.LayoutParams(Utils.dpToPx(200f), Utils.dpToPx(36f))
+        textView.layoutParams = params
+        textView.setTextColor(Color.parseColor("#A8A8A8"))
+        textView.text = text
+        textView.gravity = Gravity.CENTER
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20f)
+        textView.maxLines = 1
+
+        newLinearLayout.addView(imageButton)
+        newLinearLayout.addView(textView)
+
+        return newLinearLayout
     }
 
     private fun sendBroadcastToService(broadcastMessage: BroadcastMessage) {
@@ -116,6 +139,20 @@ class SettingsActivity : AppCompatActivity() {
             sendBroadcast(broadCastIntent)
         } catch (ex: java.lang.Exception) {
             ex.printStackTrace()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            if (data?.data != null) {
+                val uri: Uri? = data.data
+                val docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri))
+                val path: String = MyFileUtil.getPath(this, docUri)!!
+
+                Log.l("Folder Selected: " + path)
+                musicPathEditText.setText(path)
+            }
         }
     }
 }

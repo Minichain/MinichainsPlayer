@@ -9,6 +9,7 @@
     <string name="filling_play_list">Filling playlist with songs…</string>
     <string name="music_path">Music path</string>
     <string name="music_path_added">Music path added</string>
+    <string name="music_path_removed">Music path removed</string>
     <string name="pausing">Pausing song</string>
     <string name="play_list_filter">Search for a song</string>
     <string name="playing_song">Playing \"%1$s\"</string>
