@@ -1,5 +1,6 @@
 package com.example.minichainsplayer
 
+import android.app.ActionBar
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -87,7 +88,6 @@ class SettingsActivity : AppCompatActivity() {
     private fun updateMusicPaths() {
         musicPathsParentLinearLayout.removeAllViews()
         var musicPaths = DataBase.getMusicPaths()
-        Log.l("AdriHell:: musicPaths size: " + musicPaths.size)
         for (i in 0 until musicPaths?.size!! step 1) {
             musicPathsParentLinearLayout.addView(createPathLinearLayout(musicPaths[i]))
         }
@@ -97,6 +97,7 @@ class SettingsActivity : AppCompatActivity() {
         var newLinearLayout = LinearLayout(this)
         newLinearLayout.orientation = LinearLayout.HORIZONTAL
 
+        /** IMAGE BUTTON **/
         var imageButton = ImageButton(this)
         var params = ViewGroup.LayoutParams(Utils.dpToPx(36f), Utils.dpToPx(36f))
         imageButton.layoutParams = params
@@ -109,8 +110,9 @@ class SettingsActivity : AppCompatActivity() {
             updateMusicPaths()
         }
 
+        /** TEXT VIEW **/
         var textView = TextView(this)
-        params = ViewGroup.LayoutParams(Utils.dpToPx(200f), Utils.dpToPx(36f))
+        params = ViewGroup.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT, Utils.dpToPx(36f))
         textView.layoutParams = params
         textView.setTextColor(Color.parseColor("#A8A8A8"))
         textView.text = text
@@ -148,10 +150,12 @@ class SettingsActivity : AppCompatActivity() {
             if (data?.data != null) {
                 val uri: Uri? = data.data
                 val docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri))
-                val path: String = MyFileUtil.getPath(this, docUri)!!
-
-                Log.l("Folder Selected: " + path)
-                musicPathEditText.setText(path)
+                if (docUri != null) {
+                    val path = MyFileUtil.getPath(this, docUri)
+                    if (path != null) {
+                        musicPathEditText.setText(path)
+                    }
+                }
             }
         }
     }

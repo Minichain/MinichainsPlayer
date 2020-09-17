@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import androidx.core.content.ContextCompat.getExternalFilesDirs
 
 class MyFileUtil {
     companion object {
@@ -24,10 +25,18 @@ class MyFileUtil {
                     val type = split[0]
 
                     if ("primary".equals(type, ignoreCase = true)) {
-                        return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                        return try {
+                            Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                        } catch (e: ArrayIndexOutOfBoundsException) {
+                            Environment.getExternalStorageDirectory().toString() + "/"
+                        }
+                    } else {
+                        val dirs = getExternalFilesDirs(context, null)
+                        if (dirs.size > 1) {
+                            val path = dirs[1].path.substring(0, dirs[1].path.indexOf("/Android"))
+                            return (path + "/" + split[1])
+                        }
                     }
-
-                    // TODO handle non-primary volumes
                 } else if (isDownloadsDocument(uri)) {
                     val id = DocumentsContract.getDocumentId(uri)
                     val contentUri: Uri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"),
@@ -58,6 +67,8 @@ class MyFileUtil {
                 return if (isGooglePhotosUri(uri)) uri.lastPathSegment else getDataColumn(context, uri, null, null)
             } else if ("file".equals(uri.scheme, ignoreCase = true)) {
                 return uri.path
+            } else if (DocumentsContract.isRootUri(context, uri)) {
+
             }
 
             return null
