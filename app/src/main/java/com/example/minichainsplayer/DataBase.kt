@@ -1,7 +1,9 @@
 package com.example.minichainsplayer
 
 import android.content.ContentValues
+import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.widget.Toast
 import com.example.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING
 import com.example.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING_VALUE
 import com.example.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
@@ -44,21 +46,9 @@ class DataBase {
             }
         }
 
-        fun isSongInDataBase(songName: String): Boolean {
-            Log.l("isSongInDataBase: songName: " + songName)
-            try {
-                val dataBase = dataBaseHelper.writableDatabase
-                val cursor = dataBase.rawQuery( "SELECT COUNT(${COLUMN_SONG}) " +
-                        "FROM ${SONG_LIST_TABLE_NAME} WHERE ${COLUMN_SONG} = '$songName'", null);
-                cursor.moveToFirst()
-                if (cursor.getInt(0) != 0) {
-                    cursor.close()
-                    return true
-                }
-            } catch (e: Exception) {
-                return false
-            }
-            return false
+        private fun isSongInDataBase(songName: String): Boolean {
+            Log.l("isSongInDataBase: songName: $songName")
+            return isInDataBase(SONG_LIST_TABLE_NAME, COLUMN_SONG, COLUMN_SONG, songName)
         }
 
         fun getListOfSongs(): Array<String?> {
@@ -101,7 +91,7 @@ class DataBase {
             }
         }
 
-        fun setMusicPath(musicPath: String) {
+        fun setMusicPath(context: Context, musicPath: String) {
             val dataBase = dataBaseHelper.writableDatabase
             try {
                 if (dataBase != null) {
@@ -110,12 +100,38 @@ class DataBase {
                         put(COLUMN_SETTING_VALUE, musicPath)
                     }
 
-                    dataBase?.insert(SETTINGS_TABLE_NAME, null, values)
-                    Log.l("DataBaseLog: Music Path '$musicPath' inserted into the database.")
+                    if (!isMusicPathInDataBase(musicPath)) {
+                        dataBase?.insert(SETTINGS_TABLE_NAME, null, values)
+                        Log.l("DataBaseLog: Music Path '$musicPath' inserted into the database.")
+                        Toast.makeText(context, context.getString(R.string.music_path_added), Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, context.getString(R.string.music_path_already_stored), Toast.LENGTH_LONG).show()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("DataBaseLog: Error inserting music path '$musicPath' into database.")
             }
+        }
+
+        private fun isMusicPathInDataBase(musicPath: String): Boolean {
+            Log.l("isMusicPathInDataBase: musicPath: $musicPath")
+            return isInDataBase(SETTINGS_TABLE_NAME, COLUMN_SETTING, COLUMN_SETTING_VALUE, musicPath)
+        }
+
+        private fun isInDataBase(tableName: String, columnName: String, columnValue: String, value: String): Boolean {
+            try {
+                val dataBase = dataBaseHelper.writableDatabase
+                val cursor = dataBase.rawQuery( "SELECT COUNT(${columnName}) " +
+                        "FROM ${tableName} WHERE ${columnValue} = '$value'", null);
+                cursor.moveToFirst()
+                if (cursor.getInt(0) != 0) {
+                    cursor.close()
+                    return true
+                }
+            } catch (e: Exception) {
+                return false
+            }
+            return false
         }
 
         fun deleteMusicPath(musicPath: String) {

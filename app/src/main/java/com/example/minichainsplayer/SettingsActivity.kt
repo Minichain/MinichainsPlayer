@@ -75,8 +75,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         addMusicPathImageButton.setOnClickListener {
-            Toast.makeText(this, getString(R.string.music_path_added), Toast.LENGTH_LONG).show()
-            DataBase.setMusicPath(musicPathEditText.text.toString())
+            DataBase.setMusicPath(this, musicPathEditText.text.toString())
             updateMusicPaths()
         }
 

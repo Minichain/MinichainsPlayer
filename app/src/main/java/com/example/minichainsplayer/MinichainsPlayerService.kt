@@ -79,9 +79,9 @@ class MinichainsPlayerService : Service() {
 
         if (DataBase.getMusicPath().isEmpty()) {
             if (getStorageDirectory().exists()) {
-                DataBase.setMusicPath(getStorageDirectory().path)
+                DataBase.setMusicPath(this, getStorageDirectory().path)
             } else if (getExternalStorageDirectory().exists()) {
-                DataBase.setMusicPath(getExternalStorageDirectory().path)
+                DataBase.setMusicPath(this, getExternalStorageDirectory().path)
             }
         }
         Log.l("Music Path: " + DataBase.getMusicPath())
