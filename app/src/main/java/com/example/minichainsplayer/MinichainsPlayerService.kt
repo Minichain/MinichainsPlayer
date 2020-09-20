@@ -273,7 +273,7 @@ class MinichainsPlayerService : Service() {
                 }
             }
         } catch (e: Exception) {
-            Log.e("Song $songPath could not be played.")
+            Log.e("Error. Song $songPath could not be played.")
             stopAndRelease()
             play()
         }
@@ -341,7 +341,7 @@ class MinichainsPlayerService : Service() {
                     }
                     listOfSongs?.get(currentSongInteger)?.length = duration
                 } catch (e: Exception) {
-                    Log.e(e.toString())
+                    Log.e("Error. Current song could not be updated.")
                 }
             }
         }
@@ -393,7 +393,7 @@ class MinichainsPlayerService : Service() {
                 for (file in files) {
                     if (file.isDirectory) {
                         fillDataBase(file.path)
-                    } else if (file.name.endsWith(".mp3")) {
+                    } else if (hasValidExtension(file.name)) {
 //                        Log.l("Song added to play list: " + file.name)
                         val fileName = file.name.substring(0, file.name.lastIndexOf("."))
                         val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
@@ -412,6 +412,10 @@ class MinichainsPlayerService : Service() {
         }
     }
 
+    private fun hasValidExtension(songName: String): Boolean {
+        return songName.endsWith(".mp3") || songName.endsWith(".ogg") || songName.endsWith(".wav")
+    }
+
     private fun loadSongListFromDataBase() {
         try {
             val dataBase = DataBase.dataBaseHelper.writableDatabase
@@ -420,7 +424,7 @@ class MinichainsPlayerService : Service() {
             if (cursor.moveToFirst()) {
                 while (!cursor.isAfterLast) {
                     val path = cursor.getString(cursor.getColumnIndex("path"))
-                    val songName = cursor.getString(cursor.getColumnIndex("song")).replace("_", "'")
+                    val songName = cursor.getString(cursor.getColumnIndex("song")).replace("'", "_")
                     val format = cursor.getString(cursor.getColumnIndex("format"))
                     Log.l("loadSongListFromDataBase: path: $path")
                     Log.l("loadSongListFromDataBase: songName: $songName")

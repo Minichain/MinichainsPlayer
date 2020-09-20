@@ -62,7 +62,7 @@ class DataBase {
             if (cursor.moveToFirst()) {
                 var i = 0;
                 while (!cursor.isAfterLast) {
-                    val songName = cursor.getString(cursor.getColumnIndex("song")).replace("_", "'")
+                    val songName = cursor.getString(cursor.getColumnIndex("song")).replace("'", "_")
                     arrayListOfSongs[i] = songName
                     cursor.moveToNext()
                     i++;
