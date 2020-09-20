@@ -1,5 +1,6 @@
 package com.example.minichainsplayer
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -28,6 +29,7 @@ class MinichainsPlayerService : Service() {
     private lateinit var notification: NotificationCompat.Builder
     private lateinit var notificationName: CharSequence
     private lateinit var notificationTitle: CharSequence
+    private var notificationPlaying = false
     private var notificationManager: NotificationManager? = null
     private var notificationManagerCompat: NotificationManagerCompat? = null
     private val serviceNotificationStringId = "MINICHAINS_PLAYER_SERVICE_NOTIFICATION"
@@ -46,7 +48,6 @@ class MinichainsPlayerService : Service() {
     private var shuffle = false
 
     private var listOfSongs: ArrayList<SongFile>? = null
-    private var listOfSongsPlayed: ArrayList<Int>? = null
 
     private lateinit var mediaSession: MediaSessionCompat
     private var timesPressingMediaButton = 0
@@ -94,11 +95,12 @@ class MinichainsPlayerService : Service() {
 
         minichainsPlayerBroadcastReceiver = MinichainsPlayerServiceBroadcastReceiver()
         registerMinichainsPlayerServiceBroadcastReceiver()
-        createMinichainsPlayerServiceNotification()
 
         initUpdateActivityThread()
 
         initMediaSessions()
+
+        createMinichainsPlayerServiceNotification()
     }
 
     var mediaSessionTimer = Timer()
@@ -155,7 +157,7 @@ class MinichainsPlayerService : Service() {
                         sleep(sleepTime.toLong())
                         updateCurrentSongInfo()
                         updateActivityVariables()
-                        updateNotificationTitle()
+                        updateNotification()
                     }
                 } catch (e: InterruptedException) {
                 }
@@ -569,6 +571,41 @@ class MinichainsPlayerService : Service() {
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, intent.flags)
 
+        notificationTitle = currentSongName
+        notificationPlaying = playing
+        notification = NotificationCompat.Builder(this, serviceNotificationStringId)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSmallIcon(R.drawable.baseline_music_note_24)
+            .setContentTitle(notificationTitle)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(false)
+            .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(1)
+                .setMediaSession(mediaSession.sessionToken))
+
+        updateNotificationActions()
+
+        notificationManagerCompat?.notify(serviceNotificationId, notification.build())
+        this.startForeground(1, notification.build())
+    }
+
+    private fun updateNotification() {
+        if (notificationTitle != currentSongName || notificationPlaying != playing) {
+            if (notificationTitle != currentSongName) {
+                notificationTitle = currentSongName
+                notification.setContentTitle(notificationTitle)
+            }
+            if (notificationPlaying != playing) {
+                notificationPlaying = playing
+                updateNotificationActions()
+            }
+            notificationManagerCompat?.notify(serviceNotificationId, notification.build())
+            this.startForeground(1, notification.build())
+        }
+    }
+
+    @SuppressLint("RestrictedApi")
+    private fun updateNotificationActions() {
         /** PREVIOUS **/
         val previousIntent = Intent()
         previousIntent.action = BroadcastMessage.PREVIOUS_SONG.toString()
@@ -584,27 +621,18 @@ class MinichainsPlayerService : Service() {
         nextIntent.action = BroadcastMessage.NEXT_SONG.toString()
         val nextPendingIntent = PendingIntent.getBroadcast(this, 0, nextIntent, 0)
 
-        notificationTitle = currentSongName
-        notification = NotificationCompat.Builder(this, serviceNotificationStringId)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setSmallIcon(R.drawable.baseline_music_note_24)
-            .setContentTitle(notificationTitle)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(false)
-            .addAction(R.drawable.baseline_skip_previous_white_18, "Previous", previousPendingIntent)
-            .addAction(R.drawable.baseline_play_arrow_white_18, "Play/Stop", playStopPendingIntent)
-            .addAction(R.drawable.baseline_skip_next_white_18, "Next", nextPendingIntent)
+        var listOfActions = ArrayList<NotificationCompat.Action>()
+        listOfActions.add(NotificationCompat.Action(R.drawable.baseline_skip_previous_white_36, "Previous", previousPendingIntent))
+        if (playing) {
+            listOfActions.add(NotificationCompat.Action(R.drawable.baseline_pause_white_36, "Pause", playStopPendingIntent))
+        } else {
+            listOfActions.add(NotificationCompat.Action(R.drawable.baseline_play_arrow_white_36, "Play", playStopPendingIntent))
+        }
+        listOfActions.add(NotificationCompat.Action(R.drawable.baseline_skip_next_white_36, "Next", nextPendingIntent))
 
-        notificationManagerCompat?.notify(serviceNotificationId, notification.build())
-        this.startForeground(1, notification.build())
-    }
-
-    private fun updateNotificationTitle() {
-        if (notificationTitle != currentSongName) {
-            notificationTitle = currentSongName
-            notification.setContentTitle(notificationTitle)
-            notificationManagerCompat?.notify(serviceNotificationId, notification.build())
-            this.startForeground(1, notification.build())
+        notification.mActions.clear()
+        for (i in 0 until listOfActions.size step 1) {
+            notification.addAction(listOfActions[i])
         }
     }
 
