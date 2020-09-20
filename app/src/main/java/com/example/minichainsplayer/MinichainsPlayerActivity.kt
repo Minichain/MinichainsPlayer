@@ -30,7 +30,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     private lateinit var currentSongTimeBarSeekBar: SeekBar
     private lateinit var currentSongIntegerTextView: TextView
     private lateinit var showPlayListImageButton: ImageButton
-    private lateinit var appVersionNumberTextView: TextView
 
     private var playing = false
     private var currentSongTime: Int = 0
@@ -133,15 +132,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar)
         currentSongIntegerTextView = this.findViewById(R.id.current_song_integer)
         showPlayListImageButton = this.findViewById(R.id.show_play_list)
-        appVersionNumberTextView = this.findViewById(R.id.app_version_number)
-
-        try {
-            val pInfo = this.packageManager.getPackageInfo(packageName, 0)
-            val version = "v" + pInfo.versionName
-            appVersionNumberTextView.text = version
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-        }
 
         registerMinichainsPlayerActivityBroadcastReceiver()
 

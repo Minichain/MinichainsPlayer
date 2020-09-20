@@ -411,23 +411,27 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun loadSongListFromDataBase() {
-        val dataBase = DataBase.dataBaseHelper.writableDatabase
-        val cursor = dataBase.rawQuery("SELECT * FROM $SONG_LIST_TABLE_NAME ORDER BY $COLUMN_SONG ASC", null)
-        listOfSongs?.clear()
-        if (cursor.moveToFirst()) {
-            while (!cursor.isAfterLast) {
-                val path = cursor.getString(cursor.getColumnIndex("path"))
-                val songName = cursor.getString(cursor.getColumnIndex("song")).replace("_", "'")
-                val format = cursor.getString(cursor.getColumnIndex("format"))
-                Log.l("loadSongListFromDataBase: path: $path")
-                Log.l("loadSongListFromDataBase: songName: $songName")
-                Log.l("loadSongListFromDataBase: format: $format")
-                val songFile = SongFile(path, songName, format, -1)
-                listOfSongs?.add(songFile)
-                cursor.moveToNext()
+        try {
+            val dataBase = DataBase.dataBaseHelper.writableDatabase
+            val cursor = dataBase.rawQuery("SELECT * FROM $SONG_LIST_TABLE_NAME ORDER BY $COLUMN_SONG ASC", null)
+            listOfSongs?.clear()
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast) {
+                    val path = cursor.getString(cursor.getColumnIndex("path"))
+                    val songName = cursor.getString(cursor.getColumnIndex("song")).replace("_", "'")
+                    val format = cursor.getString(cursor.getColumnIndex("format"))
+                    Log.l("loadSongListFromDataBase: path: $path")
+                    Log.l("loadSongListFromDataBase: songName: $songName")
+                    Log.l("loadSongListFromDataBase: format: $format")
+                    val songFile = SongFile(path, songName, format, -1)
+                    listOfSongs?.add(songFile)
+                    cursor.moveToNext()
+                }
             }
+            cursor.close()
+        } catch (e: Exception) {
+
         }
-        cursor.close()
     }
 
     private fun getSongInteger(songName: String): Int {

@@ -52,7 +52,11 @@ class DataBase {
         }
 
         fun getListOfSongs(): Array<String?> {
-            val arrayListOfSongs = arrayOfNulls<String>(getNumberOfSongs())
+            val numOfSongs = getNumberOfSongs()
+            if (numOfSongs <= 0) {
+                return arrayOfNulls(0)
+            }
+            val arrayListOfSongs = arrayOfNulls<String>(numOfSongs)
             val dataBase = dataBaseHelper.writableDatabase
             val cursor = dataBase.rawQuery("SELECT * FROM ${SONG_LIST_TABLE_NAME} ORDER BY ${COLUMN_SONG} ASC", null)
             if (cursor.moveToFirst()) {
@@ -84,8 +88,8 @@ class DataBase {
         fun clearSongListTable() {
             val dataBase = dataBaseHelper.writableDatabase
             try {
-                val cursor = dataBase.rawQuery("DELETE FROM ${SONG_LIST_TABLE_NAME}", null)
-                cursor.close()
+                dataBase.execSQL(SQL_DELETE_SONG_LIST_ENTRIES)
+                dataBase.execSQL(SQL_CREATE_SONG_LIST_ENTRIES)
             } catch (e: Exception) {
 
             }

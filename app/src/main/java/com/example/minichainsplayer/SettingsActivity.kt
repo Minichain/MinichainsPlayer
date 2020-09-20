@@ -2,6 +2,7 @@ package com.example.minichainsplayer
 
 import android.app.ActionBar
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -23,6 +24,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var fillPlayListButton: Button
     private lateinit var clearPlayListButton: Button
     private lateinit var musicPathsParentLinearLayout: LinearLayout
+    private lateinit var appVersionNumberTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +60,9 @@ class SettingsActivity : AppCompatActivity() {
         addMusicPathImageButton = this.findViewById(R.id.add_music_path)
         fillPlayListButton = this.findViewById(R.id.fill_play_list_button)
         clearPlayListButton = this.findViewById(R.id.clear_play_list_button)
+        appVersionNumberTextView = this.findViewById(R.id.app_version_number)
+
+        setVersionNumber()
 
         fillPlayListButton.setOnClickListener {
             sendBroadcastToService(BroadcastMessage.FILL_PLAYLIST)
@@ -82,6 +87,16 @@ class SettingsActivity : AppCompatActivity() {
         musicPathsParentLinearLayout = this.findViewById(R.id.music_paths_parent_linear_layout)
 
         updateMusicPaths()
+    }
+
+    private fun setVersionNumber() {
+        try {
+            val pInfo = this.packageManager.getPackageInfo(packageName, 0)
+            val version = "v" + pInfo.versionName
+            appVersionNumberTextView.text = version
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+        }
     }
 
     private fun updateMusicPaths() {

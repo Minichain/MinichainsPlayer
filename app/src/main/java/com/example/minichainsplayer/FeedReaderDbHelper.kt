@@ -24,21 +24,21 @@ object FeedReaderContract {
     }
 }
 
-private val SQL_CREATE_SONG_LIST_ENTRIES = "CREATE TABLE ${SONG_LIST_TABLE_NAME} (" +
+val SQL_CREATE_SONG_LIST_ENTRIES = "CREATE TABLE ${SONG_LIST_TABLE_NAME} (" +
         "${BaseColumns._ID} INTEGER PRIMARY KEY," +
         "${FeedReaderContract.SongListTable.COLUMN_PATH} TEXT," +
         "${FeedReaderContract.SongListTable.COLUMN_SONG} TEXT," +
         "${FeedReaderContract.SongListTable.COLUMN_FORMAT} TEXT," +
         "${FeedReaderContract.SongListTable.COLUMN_LENGTH} TEXT)"
 
-private val SQL_CREATE_SETTINGS_ENTRIES = "CREATE TABLE ${SETTINGS_TABLE_NAME} (" +
+val SQL_CREATE_SETTINGS_ENTRIES = "CREATE TABLE ${SETTINGS_TABLE_NAME} (" +
         "${BaseColumns._ID} INTEGER PRIMARY KEY," +
         "${FeedReaderContract.SettingsTable.COLUMN_SETTING} TEXT," +
         "${FeedReaderContract.SettingsTable.COLUMN_SETTING_VALUE} TEXT)"
 
-private val SQL_DELETE_SONG_LIST_ENTRIES = "DROP TABLE IF EXISTS ${SONG_LIST_TABLE_NAME}"
+val SQL_DELETE_SONG_LIST_ENTRIES = "DROP TABLE IF EXISTS ${SONG_LIST_TABLE_NAME}"
 
-private val SQL_DELETE_SETTINGS_ENTRIES = "DROP TABLE IF EXISTS ${SETTINGS_TABLE_NAME}"
+val SQL_DELETE_SETTINGS_ENTRIES = "DROP TABLE IF EXISTS ${SETTINGS_TABLE_NAME}"
 
 class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
