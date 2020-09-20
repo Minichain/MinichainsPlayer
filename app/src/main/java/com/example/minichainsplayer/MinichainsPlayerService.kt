@@ -385,25 +385,27 @@ class MinichainsPlayerService : Service() {
         try {
             val rootFolder = File(rootPath)
             if (!rootFolder.exists()) {
+                Log.e("Folder does not exist! rootPath: $rootPath")
                 return
             }
-            val files: Array<File> = rootFolder.listFiles()!! //here you will get NPE if directory doesn't contains any file. Handle it like this.
-            for (file in files) {
-                if (file.isDirectory) {
-                    fillDataBase(file.path)
-                } else if (file.name.endsWith(".mp3")) {
-//                    Log.l("Song added to play list: " + file.name)
-                    val fileName = file.name.substring(0, file.name.lastIndexOf("."))
-                    val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
-                    val songFile = SongFile(rootPath, fileName, fileFormat, -1)
-                    Log.l("Song added to play list. rootPath: " + rootPath
-                            + ", fileName: " + fileName
-                            + ", fileFormat: " + fileFormat)
-//                    Log.l("fileList size: " + listOfSongs?.size)
-                    DataBase.insertOrUpdateSongInDataBase(rootPath, fileName, fileFormat)
+            val files: Array<File>? = rootFolder.listFiles() //here you will get NPE if directory doesn't contains any file. Handle it like this.
+            if (!files.isNullOrEmpty()) {
+                for (file in files) {
+                    if (file.isDirectory) {
+                        fillDataBase(file.path)
+                    } else if (file.name.endsWith(".mp3")) {
+//                        Log.l("Song added to play list: " + file.name)
+                        val fileName = file.name.substring(0, file.name.lastIndexOf("."))
+                        val fileFormat = file.name.substring(file.name.lastIndexOf(".") + 1, file.name.length)
+                        val songFile = SongFile(rootPath, fileName, fileFormat, -1)
+                        Log.l("Song added to play list. rootPath: " + rootPath
+                                + ", fileName: " + fileName
+                                + ", fileFormat: " + fileFormat)
+//                        Log.l("fileList size: " + listOfSongs?.size)
+                        DataBase.insertOrUpdateSongInDataBase(rootPath, fileName, fileFormat)
+                    }
                 }
             }
-
         } catch (e: Exception) {
             Log.e(String().plus("Error loading play list: ").plus(e))
             return
