@@ -107,9 +107,9 @@ class DataBase {
                     if (!isMusicPathInDataBase(musicPath)) {
                         dataBase?.insert(SETTINGS_TABLE_NAME, null, values)
                         Log.l("DataBaseLog: Music Path '$musicPath' inserted into the database.")
-                        Toast.makeText(context, context.getString(R.string.music_path_added), Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.music_path_added), Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, context.getString(R.string.music_path_already_stored), Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.music_path_already_stored), Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {

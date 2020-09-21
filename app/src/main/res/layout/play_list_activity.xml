@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
+    android:background="@color/grey_02"
     tools:context=".PlayListActivity"
     android:focusable="true"
     android:focusableInTouchMode="true"
@@ -14,7 +14,7 @@
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.1"
+        android:layout_weight="0.11"
         >
         <EditText
             android:id="@+id/play_list_text_filter"
@@ -24,15 +24,15 @@
             android:focusableInTouchMode="true"
             android:textColor="@color/white"
             android:hint="@string/play_list_filter"
-            android:textColorHint="@color/grey"
-            tools:ignore="MissingConstraints"
+            android:textColorHint="@color/grey_00"
+            android:background="@color/grey_03"
             />
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.65"
+        android:layout_weight="0.64"
         >
         <ListView
             android:id="@+id/play_list_view"

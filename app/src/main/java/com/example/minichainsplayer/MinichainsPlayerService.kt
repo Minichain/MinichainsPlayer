@@ -348,7 +348,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun fillPlayList() {
-        Toast.makeText(this, getString(R.string.filling_play_list), Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.filling_play_list), Toast.LENGTH_SHORT).show()
         val thread: Thread = object : Thread() {
             override fun run() {
                 val currentTimeMillis = System.currentTimeMillis()
@@ -363,7 +363,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun clearPlayList() {
-        Toast.makeText(this, getString(R.string.clearing_play_list), Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.clearing_play_list), Toast.LENGTH_SHORT).show()
         mediaPlayer?.pause()
         listOfSongs?.clear()
         setCurrentSongName("")

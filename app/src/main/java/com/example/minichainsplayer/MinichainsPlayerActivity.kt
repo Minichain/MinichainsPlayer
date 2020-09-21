@@ -14,15 +14,15 @@ import android.view.MenuItem
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import com.github.clans.fab.FloatingActionButton
 import kotlin.system.exitProcess
 
 class MinichainsPlayerActivity : AppCompatActivity() {
     private lateinit var minichainsPlayerBroadcastReceiver: MinichainsPlayerActivityBroadcastReceiver
 
-    private lateinit var playButton: ImageButton
-    private lateinit var previousButton: ImageButton
-    private lateinit var nextButton: ImageButton
+    private lateinit var playFloatingButton: FloatingActionButton
+    private lateinit var previousFloatingButton: FloatingActionButton
+    private lateinit var nextFloatingButton: FloatingActionButton
     private lateinit var shuffleButton: ImageButton
     private lateinit var currentSongTexView: TextView
     private lateinit var currentSongLengthTexView: TextView
@@ -121,9 +121,9 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         }
 
         /** INITIALIZE VIEWS **/
-        playButton = this.findViewById(R.id.play_button)
-        previousButton = this.findViewById(R.id.previous_button)
-        nextButton = this.findViewById(R.id.next_button)
+        playFloatingButton = this.findViewById(R.id.play_button)
+        previousFloatingButton = this.findViewById(R.id.previous_button)
+        nextFloatingButton = this.findViewById(R.id.next_button)
         shuffleButton = this.findViewById(R.id.shuffle_button)
         currentSongTexView = this.findViewById(R.id.current_song_name)
         currentSongTexView.isSelected = true
@@ -135,23 +135,24 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
         registerMinichainsPlayerActivityBroadcastReceiver()
 
-        playButton.setOnClickListener {
+        playFloatingButton.setOnClickListener {
             if (currentSongName != null && currentSongName != "") {
                 if (!playing) {
                     sendBroadcastToService(BroadcastMessage.START_PLAYING)
-                    playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
+                    playFloatingButton.setImageResource(R.drawable.baseline_play_arrow_white_48)
+                    playFloatingButton.buttonSize
                 } else {
                     sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
-                    playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
+                    playFloatingButton.setImageResource(R.drawable.baseline_pause_white_48)
                 }
             }
         }
 
-        previousButton.setOnClickListener {
+        previousFloatingButton.setOnClickListener {
             sendBroadcastToService(BroadcastMessage.PREVIOUS_SONG)
         }
 
-        nextButton.setOnClickListener {
+        nextFloatingButton.setOnClickListener {
             sendBroadcastToService(BroadcastMessage.NEXT_SONG)
         }
 
@@ -206,9 +207,9 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         }
 
         if (playing) {
-            playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
+            playFloatingButton.setImageResource(R.drawable.baseline_pause_white_48)
         } else {
-            playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
+            playFloatingButton.setImageResource(R.drawable.baseline_play_arrow_white_48)
         }
 
         if (shuffle) {

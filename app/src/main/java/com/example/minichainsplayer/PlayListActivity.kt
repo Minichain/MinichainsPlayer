@@ -262,9 +262,9 @@ class PlayListActivity : AppCompatActivity() {
     private fun updateListView() {
         for (i in 0 until playListView.size step 1) {
             if (playListView.adapter.getItem(playListView.firstVisiblePosition + i) == currentSongName) {
-                playListView[i].background = getDrawable(R.color.grey)
+                playListView[i].background = getDrawable(R.color.grey_00)
             } else {
-                playListView[i].background = getDrawable(R.color.colorPrimaryDark)
+                playListView[i].background = getDrawable(R.color.grey_03)
             }
         }
     }

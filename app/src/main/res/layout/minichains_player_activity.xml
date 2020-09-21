@@ -5,43 +5,58 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
-    tools:context=".MinichainsPlayerActivity">
+    android:background="@color/grey_02"
+    tools:context=".MinichainsPlayerActivity"
+    >
 
-    <ImageButton
+    <com.github.clans.fab.FloatingActionButton
         android:id="@+id/play_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
         android:layout_marginBottom="25dp"
         android:layout_centerInParent="true"
-        android:background="@drawable/baseline_play_arrow_white_48"
+        android:src="@drawable/baseline_play_arrow_white_48"
+        app:fab_size="normal"
+        app:fab_colorNormal="@color/grey_00"
+        app:fab_colorPressed="@color/white_soft"
+        app:fab_colorRipple="@color/white_soft"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageButton
+        app:layout_constraintStart_toStartOf="parent"
+        />
+    <com.github.clans.fab.FloatingActionButton
         android:id="@+id/previous_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_gravity="bottom|right"
+        android:layout_marginBottom="33dp"
         android:layout_centerInParent="true"
-        android:background="@drawable/baseline_skip_previous_white_36"
+        android:src="@drawable/baseline_skip_previous_white_24"
+        app:fab_size="mini"
+        app:fab_colorNormal="@color/grey_00"
+        app:fab_colorPressed="@color/white_soft"
+        app:fab_colorRipple="@color/white_soft"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/play_button"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageButton
+        app:layout_constraintStart_toStartOf="parent"
+        />
+    <com.github.clans.fab.FloatingActionButton
         android:id="@+id/next_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_gravity="bottom|right"
+        android:layout_marginBottom="33dp"
         android:layout_centerInParent="true"
-        android:background="@drawable/baseline_skip_next_white_36"
-        android:clickable="true"
+        android:src="@drawable/baseline_skip_next_white_24"
+        app:fab_size="mini"
+        app:fab_colorNormal="@color/grey_00"
+        app:fab_colorPressed="@color/white_soft"
+        app:fab_colorRipple="@color/white_soft"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/play_button"
-        android:focusable="true" />
+        />
 
     <ImageButton
         android:id="@+id/shuffle_button"
@@ -51,7 +66,8 @@
         android:layout_marginEnd="40dp"
         android:background="@drawable/baseline_shuffle_white_24"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/next_button" />
+        app:layout_constraintBottom_toTopOf="@+id/next_button"
+        />
 
     <TextView
         android:id="@+id/current_song_name"
@@ -70,7 +86,8 @@
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <TextView
         android:id="@+id/current_song_length"
@@ -84,7 +101,8 @@
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/current_song_name"
-        android:layout_marginRight="10dp" />
+        android:layout_marginRight="10dp"
+        />
 
     <TextView
         android:id="@+id/current_song_current_time"
@@ -96,7 +114,8 @@
         android:text="Time"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/current_song_name" />
+        app:layout_constraintTop_toBottomOf="@+id/current_song_name"
+        />
 
     <SeekBar
         android:id="@+id/current_song_time_bar"
@@ -105,7 +124,8 @@
         android:layout_marginTop="25dp"
         app:layout_constraintStart_toEndOf="@+id/current_song_current_time"
         app:layout_constraintEnd_toStartOf="@+id/current_song_length"
-        app:layout_constraintTop_toBottomOf="@+id/current_song_name" />
+        app:layout_constraintTop_toBottomOf="@+id/current_song_name"
+        />
 
     <TextView
         android:id="@+id/current_song_integer"
@@ -116,7 +136,8 @@
         android:text="0/0"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <ImageButton
         android:id="@+id/show_play_list"
@@ -126,6 +147,7 @@
         android:layout_marginTop="25dp"
         android:background="@drawable/baseline_queue_music_white_24"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
