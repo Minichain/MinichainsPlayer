@@ -424,7 +424,7 @@ class MinichainsPlayerService : Service() {
             if (cursor.moveToFirst()) {
                 while (!cursor.isAfterLast) {
                     val path = cursor.getString(cursor.getColumnIndex("path"))
-                    val songName = cursor.getString(cursor.getColumnIndex("song")).replace("'", "_")
+                    val songName = cursor.getString(cursor.getColumnIndex("song"))
                     val format = cursor.getString(cursor.getColumnIndex("format"))
                     Log.l("loadSongListFromDataBase: path: $path")
                     Log.l("loadSongListFromDataBase: songName: $songName")
