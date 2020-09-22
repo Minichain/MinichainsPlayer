@@ -14,7 +14,7 @@ import android.view.MenuItem
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.github.clans.fab.FloatingActionButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlin.system.exitProcess
 
 class MinichainsPlayerActivity : AppCompatActivity() {
@@ -140,7 +140,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                 if (!playing) {
                     sendBroadcastToService(BroadcastMessage.START_PLAYING)
                     playFloatingButton.setImageResource(R.drawable.baseline_play_arrow_white_48)
-                    playFloatingButton.buttonSize
                 } else {
                     sendBroadcastToService(BroadcastMessage.STOP_PLAYING)
                     playFloatingButton.setImageResource(R.drawable.baseline_pause_white_48)
@@ -197,7 +196,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
     private fun updateViews() {
         if (currentSongTexView.text != currentSongName) {
-            currentSongTexView.text = currentSongName
+            if (currentSongName.isNotEmpty()) {
+                currentSongTexView.text = currentSongName
+            } else {
+                currentSongTexView.text = "- - -"
+            }
         }
 
         currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongTime.toLong())
@@ -218,7 +221,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
             shuffleButton.alpha = 0.5f
         }
 
-        currentSongIntegerTextView.text = String().plus(currentSongInteger.plus(1).toString()).plus("/").plus(listOfSongsSize.toString())
+        if (listOfSongsSize > 0) {
+            currentSongIntegerTextView.text = String().plus(currentSongInteger.plus(1).toString()).plus("/").plus(listOfSongsSize.toString())
+        } else {
+            currentSongIntegerTextView.text = ""
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
