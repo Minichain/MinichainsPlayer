@@ -196,7 +196,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
     private fun updateViews() {
         if (currentSongTexView.text != currentSongName) {
-            if (currentSongName.isNotEmpty()) {
+            if (currentSongName.isNotEmpty() && currentSongName != "null") {
                 currentSongTexView.text = currentSongName
             } else {
                 currentSongTexView.text = "- - -"

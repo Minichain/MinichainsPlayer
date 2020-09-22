@@ -25,7 +25,7 @@
             android:textColor="@color/white"
             android:hint="@string/play_list_filter"
             android:textColorHint="@color/grey_00"
-            android:background="@color/grey_02"
+            android:background="@color/grey_03"
             />
     </RelativeLayout>
 

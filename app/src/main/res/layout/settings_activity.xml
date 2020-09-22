@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -17,6 +17,59 @@
         android:layout_marginTop="10dp"
         android:orientation="vertical"
         >
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/play_list"
+            android:textSize="24sp"
+            android:textColor="@color/white"
+            />
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                >
+                <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    >
+                    <Button
+                        android:id="@+id/fill_play_list_button"
+                        android:text="@string/fill_play_list"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:gravity="center"
+                        />
+                </RelativeLayout>
+                <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    >
+                    <Button
+                        android:id="@+id/clear_play_list_button"
+                        android:text="@string/clear_play_list"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:gravity="center"
+                        />
+                </RelativeLayout>
+            </LinearLayout>
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/music_paths"
+            android:textSize="24sp"
+            android:textColor="@color/white"
+            android:layout_marginTop="25dp"
+            />
         <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="48dp"
@@ -78,53 +131,15 @@
             >
         </LinearLayout>
 
-        <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            >
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:orientation="horizontal"
-                >
-                <RelativeLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    >
-                    <Button
-                        android:id="@+id/fill_play_list_button"
-                        android:text="@string/fill_play_list"
-                        android:layout_width="fill_parent"
-                        android:layout_height="fill_parent"
-                        android:gravity="center"
-                        />
-                </RelativeLayout>
-                <RelativeLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    >
-                    <Button
-                        android:id="@+id/clear_play_list_button"
-                        android:text="@string/clear_play_list"
-                        android:layout_width="fill_parent"
-                        android:layout_height="fill_parent"
-                        android:gravity="center"
-                        />
-                </RelativeLayout>
-            </LinearLayout>
-        </RelativeLayout>
-
         <TextView
             android:id="@+id/app_version_number"
-            android:text="Unknown Version"
+            android:text="@string/unknown_version"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:layout_marginBottom="2dp"
+            android:layout_marginBottom="25dp"
+            android:layout_marginTop="25dp"
             android:textColor="@color/white"
-            android:textSize="12dp"
+            android:textSize="12sp"
             />
     </LinearLayout>
-</LinearLayout>
+</ScrollView>

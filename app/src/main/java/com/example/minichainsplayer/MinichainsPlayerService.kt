@@ -246,7 +246,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun setCurrentSongTime(newCurrentSongTime: Int) {
-        if (newCurrentSongTime in 0 until currentSongLength && currentSongTime != newCurrentSongTime) {
+        if (newCurrentSongTime in 0 until currentSongLength) {
             currentSongTime = newCurrentSongTime
             updateActivityVariables02 = true
         }

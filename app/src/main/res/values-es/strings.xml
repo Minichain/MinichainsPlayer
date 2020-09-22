@@ -1,20 +1,23 @@
 <resources>
     <string name="app_name">Minichain\'s Player</string>
 
-    <string name="clear_play_list">Limpiar lista de canciones</string>
+    <string name="clear_play_list">Limpiar lista</string>
     <string name="clearing_play_list">Limpiando lista…</string>
     <string name="close_app">Cerrar App</string>
     <string name="empty_list">Lista vacía</string>
-    <string name="fill_play_list">Llenar lista de canciones</string>
+    <string name="fill_play_list">Llenar lista</string>
     <string name="filling_play_list">Llenando lista…</string>
     <string name="music_path">Ruta</string>
+    <string name="music_paths">Directorios</string>
     <string name="music_path_added">Ruta añadida a la lista</string>
     <string name="music_path_already_stored">Ruta ya guardada</string>
     <string name="music_path_removed">Ruta eliminada</string>
     <string name="pausing">Canción en pausa</string>
+    <string name="play_list">Lista de música</string>
     <string name="play_list_filter">Busca una canción</string>
     <string name="playing_song">Está sonando \"%1$s\"</string>
     <string name="settings">Opciones</string>
     <string name="shuffle_disabled">Reproducción aleatoria desactivada</string>
     <string name="shuffle_enabled">Reproducción aleatoria activada</string>
+    <string name="unknown_version">Versión desconocida</string>
 </resources>
