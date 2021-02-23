@@ -18,7 +18,7 @@ class PlayListActivity : AppCompatActivity() {
 
     private lateinit var playListActivity: LinearLayout
     private lateinit var playListView: ListView
-    private lateinit var arrayAdapter: ArrayAdapter<String?>
+    private lateinit var arrayAdapter: CustomArrayAdapter<String?>
     private lateinit var playListTextFilter: EditText
     private lateinit var playListPlayerRelativeLayout: RelativeLayout
     private lateinit var playButton: ImageButton
@@ -101,7 +101,7 @@ class PlayListActivity : AppCompatActivity() {
             playListView.visibility = View.GONE
         } else {
             playListEmptyTextView.visibility = View.GONE
-            arrayAdapter = ArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
+            arrayAdapter = CustomArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
             playListView.adapter = arrayAdapter
 
             playListView.setOnItemClickListener { adapterView, view, i, l ->
