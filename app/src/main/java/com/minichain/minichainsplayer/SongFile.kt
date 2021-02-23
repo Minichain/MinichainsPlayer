@@ -1,4 +1,4 @@
-package com.example.minichainsplayer
+package com.minichain.minichainsplayer
 
 class SongFile {
     var path: String

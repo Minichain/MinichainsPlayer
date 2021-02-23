@@ -1,17 +1,16 @@
-package com.example.minichainsplayer
+package com.minichain.minichainsplayer
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import android.widget.Toast
-import com.example.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING
-import com.example.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING_VALUE
-import com.example.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
-import com.example.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_FORMAT
-import com.example.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_LENGTH
-import com.example.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_PATH
-import com.example.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_SONG
-import com.example.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
+import com.minichain.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING
+import com.minichain.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING_VALUE
+import com.minichain.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
+import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_FORMAT
+import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_LENGTH
+import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_PATH
+import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_SONG
+import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
 
 class DataBase {
     companion object {

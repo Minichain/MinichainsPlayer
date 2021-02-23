@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.minichainsplayer"
+    package="com.minichain.minichainsplayer"
     >
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -17,7 +17,7 @@
         android:requestLegacyExternalStorage="true"
         >
         <activity
-            android:name=".MinichainsPlayerActivity"
+            android:name="com.minichain.minichainsplayer.MinichainsPlayerActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
@@ -30,30 +30,30 @@
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.minichain.minichainsplayer.SettingsActivity"
             android:label="Settings"
-            android:parentActivityName=".MinichainsPlayerActivity"
+            android:parentActivityName="com.minichain.minichainsplayer.MinichainsPlayerActivity"
             android:screenOrientation="portrait"
             >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MinichainsPlayerActivity"
+                android:value="com.minichain.minichainsplayer.MinichainsPlayerActivity"
                 />
         </activity>
 
-        <activity android:name=".PlayListActivity"
+        <activity android:name="com.minichain.minichainsplayer.PlayListActivity"
             android:label="Playlist"
-            android:parentActivityName=".MinichainsPlayerActivity"
+            android:parentActivityName="com.minichain.minichainsplayer.MinichainsPlayerActivity"
             android:screenOrientation="portrait"
             >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MinichainsPlayerActivity"
+                android:value="com.minichain.minichainsplayer.MinichainsPlayerActivity"
                 />
         </activity>
 
         <service
-            android:name=".MinichainsPlayerService">
+            android:name="com.minichain.minichainsplayer.MinichainsPlayerService">
         </service>
     </application>
 

@@ -1,11 +1,11 @@
-package com.example.minichainsplayer
+package com.minichain.minichainsplayer
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.provider.BaseColumns
-import com.example.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
-import com.example.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
+import com.minichain.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
+import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
 
 object FeedReaderContract {
     // Table contents are grouped together in an anonymous object.

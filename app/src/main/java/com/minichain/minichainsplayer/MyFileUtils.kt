@@ -1,4 +1,4 @@
-package com.example.minichainsplayer
+package com.minichain.minichainsplayer
 
 import android.content.ContentUris
 import android.content.Context

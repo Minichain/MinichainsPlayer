@@ -1,4 +1,4 @@
-package com.example.minichainsplayer
+package com.minichain.minichainsplayer
 
 import android.Manifest
 import android.content.BroadcastReceiver

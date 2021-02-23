@@ -1,4 +1,4 @@
-package com.example.minichainsplayer
+package com.minichain.minichainsplayer
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -18,8 +18,8 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_SONG
-import com.example.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
+import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_SONG
+import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList

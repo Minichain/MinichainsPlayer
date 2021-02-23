@@ -1,4 +1,4 @@
-package com.example.minichainsplayer
+package com.minichain.minichainsplayer
 
 import android.app.ActionBar
 import android.content.Intent
@@ -14,7 +14,6 @@ import android.widget.*
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.widget.addTextChangedListener
 
 
 class SettingsActivity : AppCompatActivity() {
