@@ -68,7 +68,7 @@ class DataBase {
             return arrayListOfSongs
         }
 
-        fun getNumberOfSongs(): Int {
+        private fun getNumberOfSongs(): Int {
             val dataBase = dataBaseHelper.writableDatabase
             try {
                 val cursor = dataBase.rawQuery("SELECT COUNT(*) FROM ${SONG_LIST_TABLE_NAME}", null)

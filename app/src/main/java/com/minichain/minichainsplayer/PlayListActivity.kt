@@ -112,7 +112,7 @@ class PlayListActivity : AppCompatActivity() {
             }
 
             playListView.post(Runnable {
-                updateCurrentSongInteger(intent.getIntExtra("CURRENT_SONG_INTEGER", -1))
+                updateCurrentSongInteger(arrayListOfSongs.indexOf(currentSongName))
                 playListView.setSelectionFromTop(currentSongInteger, playListView.height / 2)
             })
 
