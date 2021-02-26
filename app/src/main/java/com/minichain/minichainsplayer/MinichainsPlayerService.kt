@@ -94,6 +94,10 @@ class MinichainsPlayerService : Service() {
         listOfSongsSorted = ArrayList()
         listOfSongsShuffled = ArrayList()
         loadSongListFromDataBase()
+        if (getListOfSongs() != null && getListOfSongs()?.isNotEmpty()!!) {
+            val lastSongPlayed = DataBase.getLastSongPlayed()
+            if (lastSongPlayed != null) updateCurrentSongInteger(DataBase.getLastSongPlayed())
+        }
         updateCurrentSongInfo()
 
         minichainsPlayerBroadcastReceiver = MinichainsPlayerServiceBroadcastReceiver()
@@ -251,15 +255,19 @@ class MinichainsPlayerService : Service() {
             shuffle = newShuffle
             if (shuffle) shuffle(listOfSongsShuffled!!)
             //Changing the listOfSongs we use. We need to find the position of the current song on that list
-            var songInteger = 0
-            for (i in 0 until getListOfSongs()!!.size step 1) {
-                if (getListOfSongs()!![i].songName == currentSongName) break
-                songInteger++
-            }
-            currentSongInteger = songInteger
+            updateCurrentSongInteger(currentSongName)
             updateCurrentSongInfo()
             updateActivityVariables01 = true
         }
+    }
+
+    private fun updateCurrentSongInteger(songName: String) {
+        var songInteger = 0
+        for (i in 0 until getListOfSongs()!!.size step 1) {
+            if (getListOfSongs()!![i].songName == songName) break
+            songInteger++
+        }
+        currentSongInteger = songInteger
     }
 
     private fun setCurrentSongTime(newCurrentSongTime: Int) {
@@ -272,7 +280,6 @@ class MinichainsPlayerService : Service() {
     private fun play(songPath: String = currentSongPath, songTime: Int = currentSongTime) {
         Log.l("Play $songPath")
         if (getListOfSongs().isNullOrEmpty()) return
-
         setCurrentSongPath(songPath)
         try {
             mediaPlayer?.stop()
@@ -282,6 +289,7 @@ class MinichainsPlayerService : Service() {
             mediaPlayer?.setOnPreparedListener {
                 mediaPlayer?.seekTo(songTime)
                 mediaPlayer?.start()
+                DataBase.setLastSongPlayed(currentSongName)
                 Toast.makeText(this, getString(R.string.playing_song, currentSongName), Toast.LENGTH_SHORT).show()
                 mediaPlayer?.setOnCompletionListener {
                     if (currentSongTime > 0) {

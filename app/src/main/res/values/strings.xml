@@ -20,4 +20,5 @@
     <string name="shuffle_disabled">Shuffle disabled</string>
     <string name="shuffle_enabled">Shuffle enabled</string>
     <string name="unknown_version">Unknown Version</string>
+    <string name="number_of_songs">%1$s songs</string>
 </resources>

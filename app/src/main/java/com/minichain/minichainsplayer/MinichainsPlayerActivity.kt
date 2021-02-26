@@ -28,7 +28,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     private lateinit var currentSongLengthTexView: TextView
     private lateinit var currentSongCurrentTimeTexView: TextView
     private lateinit var currentSongTimeBarSeekBar: SeekBar
-    private lateinit var currentSongIntegerTextView: TextView
+    private lateinit var numberOfSongsTextView: TextView
     private lateinit var showPlayListImageButton: ImageButton
 
     private var playing = false
@@ -130,7 +130,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         currentSongLengthTexView = this.findViewById(R.id.current_song_length)
         currentSongCurrentTimeTexView = this.findViewById(R.id.current_song_current_time)
         currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar)
-        currentSongIntegerTextView = this.findViewById(R.id.current_song_integer)
+        numberOfSongsTextView = this.findViewById(R.id.number_of_songs)
         showPlayListImageButton = this.findViewById(R.id.show_play_list)
 
         registerMinichainsPlayerActivityBroadcastReceiver()
@@ -222,9 +222,9 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         }
 
         if (listOfSongsSize > 0) {
-            currentSongIntegerTextView.text = String().plus(currentSongInteger.plus(1).toString()).plus("/").plus(listOfSongsSize.toString())
+            numberOfSongsTextView.text = getString(R.string.number_of_songs, listOfSongsSize.toString())
         } else {
-            currentSongIntegerTextView.text = ""
+            numberOfSongsTextView.text = getString(R.string.number_of_songs, "0")
         }
     }
 

@@ -3,6 +3,8 @@ package com.minichain.minichainsplayer
 import android.content.ContentValues
 import android.content.Context
 import android.widget.Toast
+import com.minichain.minichainsplayer.FeedReaderContract.LasSongPlayed.COLUMN_LAST_SONG_NAME
+import com.minichain.minichainsplayer.FeedReaderContract.LasSongPlayed.LAST_SONG_PLAYED_TABLE_NAME
 import com.minichain.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING
 import com.minichain.minichainsplayer.FeedReaderContract.SettingsTable.COLUMN_SETTING_VALUE
 import com.minichain.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
@@ -15,6 +17,8 @@ import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST
 class DataBase {
     companion object {
         lateinit var dataBaseHelper: FeedReaderDbHelper
+
+        /** LIST OF SONGS **/
 
         fun insertOrUpdateSongInDataBase(rootPath: String, fileName: String, fileFormat: String) {
             var newFileName = fileName
@@ -91,6 +95,8 @@ class DataBase {
             }
         }
 
+        /** MUSIC PATH **/
+
         fun setMusicPath(context: Context, musicPath: String) {
             val dataBase = dataBaseHelper.writableDatabase
             try {
@@ -116,22 +122,6 @@ class DataBase {
         private fun isMusicPathInDataBase(musicPath: String): Boolean {
             Log.l("isMusicPathInDataBase: musicPath: $musicPath")
             return isInDataBase(SETTINGS_TABLE_NAME, COLUMN_SETTING, COLUMN_SETTING_VALUE, musicPath)
-        }
-
-        private fun isInDataBase(tableName: String, columnName: String, columnValue: String, value: String): Boolean {
-            try {
-                val dataBase = dataBaseHelper.writableDatabase
-                val cursor = dataBase.rawQuery( "SELECT COUNT(${columnName}) " +
-                        "FROM ${tableName} WHERE ${columnValue} = '$value'", null);
-                cursor.moveToFirst()
-                if (cursor.getInt(0) != 0) {
-                    cursor.close()
-                    return true
-                }
-            } catch (e: Exception) {
-                return false
-            }
-            return false
         }
 
         fun deleteMusicPath(musicPath: String) {
@@ -168,6 +158,64 @@ class DataBase {
             }
             cursor.close()
             return musicPath
+        }
+
+        /** LAST SONG PLAYED **/
+
+        private fun isLastSongPlayedTableEmpty(): Boolean {
+            val dataBase = dataBaseHelper.writableDatabase
+            val cursor = dataBase.rawQuery("SELECT count(*) FROM ${LAST_SONG_PLAYED_TABLE_NAME}", null)
+            cursor.moveToFirst()
+            val count = cursor.getInt(0)
+            cursor.close()
+            return count == 0
+        }
+
+        fun setLastSongPlayed(lastSongPlayed: String) {
+            val dataBase = dataBaseHelper.writableDatabase
+            try {
+                if (dataBase != null) {
+                    val values = ContentValues().apply {
+                        put(COLUMN_LAST_SONG_NAME, lastSongPlayed)
+                    }
+
+                    if (isLastSongPlayedTableEmpty()) {
+                        dataBase?.insert(LAST_SONG_PLAYED_TABLE_NAME, null, values)
+                    } else {
+                        dataBase?.update(LAST_SONG_PLAYED_TABLE_NAME, values,  "$COLUMN_LAST_SONG_NAME IS NOT NULL", null)
+                    }
+                    Log.l("DataBaseLog: Last song played '$lastSongPlayed' inserted into the database.")
+                }
+            } catch (e: Exception) {
+                Log.e("DataBaseLog: Error inserting last song played '$lastSongPlayed' into database.")
+            }
+        }
+
+        fun getLastSongPlayed(): String {
+            val dataBase = dataBaseHelper.writableDatabase
+            val cursor = dataBase.rawQuery("SELECT $COLUMN_LAST_SONG_NAME FROM ${LAST_SONG_PLAYED_TABLE_NAME}", null)
+            cursor.moveToLast()
+            val lastSongName = cursor.getString(0)
+            cursor.close()
+            return lastSongName
+        }
+
+        /** ALL TABLES **/
+
+        private fun isInDataBase(tableName: String, columnName: String, columnValue: String, value: String): Boolean {
+            try {
+                val dataBase = dataBaseHelper.writableDatabase
+                val cursor = dataBase.rawQuery( "SELECT COUNT(${columnName}) " +
+                        "FROM ${tableName} WHERE ${columnValue} = '$value'", null);
+                cursor.moveToFirst()
+                if (cursor.getInt(0) != 0) {
+                    cursor.close()
+                    return true
+                }
+            } catch (e: Exception) {
+                return false
+            }
+            return false
         }
     }
 }
