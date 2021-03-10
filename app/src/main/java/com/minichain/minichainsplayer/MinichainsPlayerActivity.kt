@@ -318,6 +318,8 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                             currentSongTime = extras.getInt("currentSongTime")
                         }
                         updateViews()
+                    } else if (broadcast == BroadcastMessage.DATABASE_IS_READY.toString()) {
+                        updateViewsColors(DataBase.getAppTheme())
                     } else {
                         Log.l("MinichainsPlayerActivityLog:: Unknown broadcast received")
                     }
@@ -339,5 +341,10 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         } catch (ex: java.lang.Exception) {
             ex.printStackTrace()
         }
+    }
+
+    private fun updateViewsColors(theme: Int) {
+        playFloatingButton.rippleColor = AppTheme.getColorAccordingToTheme(resources, "hint", theme)
+        playFloatingButton.setBackgroundColor(AppTheme.getColorAccordingToTheme(resources, "background_01", theme))
     }
 }

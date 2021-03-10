@@ -21,4 +21,8 @@
     <string name="shuffle_enabled">Reproducción aleatoria activada</string>
     <string name="unknown_version">Versión desconocida</string>
     <string name="number_of_songs">%1$s canciones</string>
+
+    <string name="app_theme">Tema</string>
+    <string name="app_theme_01">Estándar</string>
+    <string name="app_theme_02">Oscuro</string>
 </resources>

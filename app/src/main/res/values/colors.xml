@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--Default Theme-->
     <color name="white">#FFFFFF</color>
-    <color name="white_soft">#A8A8A8</color>
-    <color name="grey_00">#6A6A6A</color>
-    <color name="grey_01">#535353</color>
-    <color name="grey_02">#454545</color>
-    <color name="grey_03">#353535</color>
-    <color name="black">#000000</color>
+    <color name="text_01">#D39A0D</color>
+    <color name="hint">#B6850C</color>
+    <color name="background_01">#6A1D80</color>
+    <color name="background_02">#511661</color>
+    <color name="background_03">#370F42</color>
+
+    <!--Dark Theme-->
+    <color name="dark_theme_white">#FFFFFF</color>
+    <color name="dark_theme_text_01">#A8A8A8</color>
+    <color name="dark_theme_hint">#6A6A6A</color>
+    <color name="dark_theme_background_01">#535353</color>
+    <color name="dark_theme_background_02">#454545</color>
+    <color name="dark_theme_background_03">#353535</color>
+
 </resources>

@@ -95,7 +95,7 @@ class DataBase {
             }
         }
 
-        /** MUSIC PATH **/
+        /** SETTINGS **/
 
         fun setMusicPath(context: Context, musicPath: String) {
             val dataBase = dataBaseHelper.writableDatabase
@@ -158,6 +158,47 @@ class DataBase {
             }
             cursor.close()
             return musicPath
+        }
+
+        fun setAppTheme(context: Context, theme: Int) {
+            val dataBase = dataBaseHelper.writableDatabase
+            try {
+                if (dataBase != null) {
+                    val values = ContentValues().apply {
+                        put(COLUMN_SETTING, "appTheme")
+                        put(COLUMN_SETTING_VALUE, theme)
+                    }
+
+                    if (!isAppThemeInDataBase()) {
+                        dataBase?.insert(SETTINGS_TABLE_NAME, null, values)
+                        Log.l("DataBaseLog: App theme '$theme' inserted into the database.")
+                    } else {
+                        dataBase?.update(SETTINGS_TABLE_NAME, values,  "$COLUMN_SETTING = 'appTheme'", null)
+                        Log.l("DataBaseLog: App theme '$theme' updated into the database.")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("DataBaseLog: Error inserting  app theme '$theme' into database.")
+            }
+        }
+
+        private fun isAppThemeInDataBase(): Boolean {
+            val dataBase = dataBaseHelper.writableDatabase
+            val cursor = dataBase.rawQuery("SELECT count(*) FROM ${SETTINGS_TABLE_NAME} WHERE $COLUMN_SETTING = 'appTheme'", null)
+            cursor.moveToFirst()
+            val count = cursor.getInt(0)
+            cursor.close()
+            return count > 0
+        }
+
+        fun getAppTheme(): Int {
+            val dataBase = dataBaseHelper.writableDatabase
+            val cursor = dataBase.rawQuery("SELECT $COLUMN_SETTING_VALUE FROM ${SETTINGS_TABLE_NAME} WHERE $COLUMN_SETTING = 'appTheme'", null)
+            if (cursor.count <= 0) return 0
+            cursor.moveToFirst()
+            val appTheme = cursor.getInt(0)
+            cursor.close()
+            return appTheme
         }
 
         /** LAST SONG PLAYED **/

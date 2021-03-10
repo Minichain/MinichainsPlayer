@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    >
+
+    <item android:id="@+id/app_theme_01"
+        android:title="@string/app_theme_01"
+        />
+    <item android:id="@+id/app_theme_02"
+        android:title="@string/app_theme_02"
+        />
+
+</menu>

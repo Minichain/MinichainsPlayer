@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/relative_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grey_02"
     android:orientation="vertical"
     tools:context="SettingsActivity"
     >
@@ -18,11 +18,11 @@
         android:orientation="vertical"
         >
         <TextView
+            android:id="@+id/play_list_setting_title"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/play_list"
             android:textSize="24sp"
-            android:textColor="@color/white"
             />
         <RelativeLayout
             android:layout_width="fill_parent"
@@ -63,11 +63,11 @@
         </RelativeLayout>
 
         <TextView
+            android:id="@+id/music_directories_setting_title"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/music_paths"
             android:textSize="24sp"
-            android:textColor="@color/white"
             android:layout_marginTop="25dp"
             />
         <RelativeLayout
@@ -103,9 +103,7 @@
                         android:layout_height="fill_parent"
                         android:visibility="visible"
                         android:inputType="text"
-                        android:textColor="@color/white"
                         android:hint="@string/music_path"
-                        android:textColorHint="@color/white_soft"
                         />
                 </RelativeLayout>
                 <RelativeLayout
@@ -131,6 +129,35 @@
             >
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/theme_selector_linear_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            >
+            <TextView
+                android:id="@+id/theme_selector_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/app_theme"
+                android:textSize="24sp"
+                />
+            <LinearLayout
+                android:id="@+id/debug_mode_switch_layout"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                >
+                <TextView
+                    android:id="@+id/theme_selected_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    />
+            </LinearLayout>
+        </LinearLayout>
+
         <TextView
             android:id="@+id/app_version_number"
             android:text="@string/unknown_version"
@@ -138,7 +165,6 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="25dp"
             android:layout_marginTop="25dp"
-            android:textColor="@color/white"
             android:textSize="12sp"
             />
     </LinearLayout>

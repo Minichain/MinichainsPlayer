@@ -21,4 +21,8 @@
     <string name="shuffle_enabled">Shuffle enabled</string>
     <string name="unknown_version">Unknown Version</string>
     <string name="number_of_songs">%1$s songs</string>
+
+    <string name="app_theme">Theme</string>
+    <string name="app_theme_01">Default Theme</string>
+    <string name="app_theme_02">Dark Theme</string>
 </resources>

@@ -8,8 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.util.TypedValue
-import android.view.Gravity
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
@@ -17,12 +16,18 @@ import androidx.core.content.ContextCompat
 
 
 class SettingsActivity : AppCompatActivity() {
+    private lateinit var relativeScrollLayout: ScrollView
+    private lateinit var playListSettingTextView: TextView
+    private lateinit var musicDirectoriesTextView: TextView
     private lateinit var musicPathEditText: EditText
     private lateinit var openFileChooserImageButton: ImageButton
     private lateinit var addMusicPathImageButton: ImageButton
     private lateinit var fillPlayListButton: Button
     private lateinit var clearPlayListButton: Button
     private lateinit var musicPathsParentLinearLayout: LinearLayout
+    private lateinit var themeSelectorLinearLayout: LinearLayout
+    private lateinit var themeSelectorTextView: TextView
+    private lateinit var themeSelectedTextView: TextView
     private lateinit var appVersionNumberTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,12 +59,19 @@ class SettingsActivity : AppCompatActivity() {
         Log.l("Init SettingsActivity!")
         setContentView(R.layout.settings_activity)
 
+        relativeScrollLayout = this.findViewById(R.id.relative_layout)
+        playListSettingTextView = this.findViewById(R.id.play_list_setting_title)
+        musicDirectoriesTextView = this.findViewById(R.id.music_directories_setting_title)
         musicPathEditText = this.findViewById(R.id.music_path_edit_text)
         openFileChooserImageButton = this.findViewById(R.id.open_file_chooser_internal_storage)
         addMusicPathImageButton = this.findViewById(R.id.add_music_path)
         fillPlayListButton = this.findViewById(R.id.fill_play_list_button)
         clearPlayListButton = this.findViewById(R.id.clear_play_list_button)
         appVersionNumberTextView = this.findViewById(R.id.app_version_number)
+        musicPathsParentLinearLayout = this.findViewById(R.id.music_paths_parent_linear_layout)
+        themeSelectorLinearLayout = this.findViewById(R.id.theme_selector_linear_layout)
+        themeSelectorTextView = this.findViewById(R.id.theme_selector_title)
+        themeSelectedTextView = this.findViewById(R.id.theme_selected_text)
 
         setVersionNumber()
 
@@ -83,9 +95,33 @@ class SettingsActivity : AppCompatActivity() {
             updateMusicPaths()
         }
 
-        musicPathsParentLinearLayout = this.findViewById(R.id.music_paths_parent_linear_layout)
+        themeSelectorLinearLayout.setOnClickListener {
+            val themeSelectorMenu = PopupMenu(this, themeSelectorLinearLayout)
+            themeSelectorMenu.menuInflater.inflate(R.menu.theme_floating_context_menu, themeSelectorMenu.menu)
+            themeSelectorMenu.setOnMenuItemClickListener {
+                updateAppTheme(it.itemId)
+                super.onMenuItemSelected(it.itemId, it)
+            }
+            themeSelectorMenu.show()
+        }
 
+        updateAppTheme(DataBase.getAppTheme())
         updateMusicPaths()
+    }
+
+    private fun updateAppTheme(themeId: Int) {
+        when (themeId) {
+            R.id.app_theme_01 -> {
+                themeSelectedTextView.setText(R.string.app_theme_01)
+//                Toast.makeText(this, R.string.app_theme_01, Toast.LENGTH_SHORT).show()
+            }
+            R.id.app_theme_02 -> {
+                themeSelectedTextView.setText(R.string.app_theme_02)
+//                Toast.makeText(this, R.string.app_theme_02, Toast.LENGTH_SHORT).show()
+            }
+        }
+        DataBase.setAppTheme(this, themeId)
+        updateViewsColors(themeId)
     }
 
     private fun setVersionNumber() {
@@ -171,5 +207,16 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun updateViewsColors(theme: Int) {
+        relativeScrollLayout.setBackgroundColor(AppTheme.getColorAccordingToTheme(resources, "background_02", theme))
+        playListSettingTextView.setTextColor(AppTheme.getColorAccordingToTheme(resources, "white", theme))
+        musicDirectoriesTextView.setTextColor(AppTheme.getColorAccordingToTheme(resources, "white", theme))
+        musicPathEditText.setTextColor(AppTheme.getColorAccordingToTheme(resources, "white", theme))
+        musicPathEditText.setHintTextColor(AppTheme.getColorAccordingToTheme(resources, "text_01", theme))
+        themeSelectorTextView.setTextColor(AppTheme.getColorAccordingToTheme(resources, "white", theme))
+        themeSelectedTextView.setTextColor(AppTheme.getColorAccordingToTheme(resources, "text_01", theme))
+        appVersionNumberTextView.setTextColor(AppTheme.getColorAccordingToTheme(resources, "white", theme))
     }
 }

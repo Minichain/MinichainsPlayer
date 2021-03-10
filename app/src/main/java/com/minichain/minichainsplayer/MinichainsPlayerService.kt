@@ -108,6 +108,8 @@ class MinichainsPlayerService : Service() {
         initMediaSessions()
 
         createMinichainsPlayerServiceNotification()
+
+        sendBroadcastToActivity(BroadcastMessage.DATABASE_IS_READY)
     }
 
     var mediaSessionTimer = Timer()
