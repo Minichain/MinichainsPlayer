@@ -31,12 +31,8 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     private lateinit var numberOfSongsTextView: TextView
     private lateinit var showPlayListImageButton: ImageButton
 
-    private var playing = false
-    private var currentSongTime: Int = 0
-    private var currentSongPath = ""
-    private var currentSongName = ""
-    private var currentSongInteger = 0
-    private var currentSongLength: Long = 0
+    private var currentSong = CurrentSong()
+
     private var listOfSongsSize = 0
     private var shuffle = false
 
@@ -136,8 +132,8 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         registerMinichainsPlayerActivityBroadcastReceiver()
 
         playFloatingButton.setOnClickListener {
-            if (currentSongName != null && currentSongName != "") {
-                if (!playing) {
+            if (currentSong.currentSongName != "") {
+                if (!currentSong.playing) {
                     sendBroadcastToService(BroadcastMessage.START_PLAYING)
                     playFloatingButton.setImageResource(R.drawable.baseline_play_arrow_white_48)
                 } else {
@@ -167,11 +163,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         showPlayListImageButton.setOnClickListener {
             this.onPause()
             intent = Intent(applicationContext, PlayListActivity::class.java)
-            intent.putExtra("CURRENT_SONG_INTEGER", currentSongInteger)
-            intent.putExtra("PLAYING", playing)
-            intent.putExtra("CURRENT_SONG_NAME", currentSongName)
-            intent.putExtra("CURRENT_SONG_TIME", currentSongTime)
-            intent.putExtra("CURRENT_SONG_LENGTH", currentSongLength)
+            intent.putExtra("CURRENT_SONG_INTEGER", currentSong.currentSongInteger)
+            intent.putExtra("PLAYING", currentSong.playing)
+            intent.putExtra("CURRENT_SONG_NAME", currentSong.currentSongName)
+            intent.putExtra("CURRENT_SONG_TIME", currentSong.currentSongTime)
+            intent.putExtra("CURRENT_SONG_LENGTH", currentSong.currentSongLength)
             startActivity(intent)
         }
 
@@ -187,29 +183,29 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 var bundle = Bundle()
-                currentSongTime = ((currentSongTimeBarSeekBar.progress.toDouble() / 100.0) * currentSongLength.toDouble()).toInt()
-                bundle.putInt("currentSongTime", currentSongTime)
+                currentSong.currentSongTime = ((currentSongTimeBarSeekBar.progress.toDouble() / 100.0) * currentSong.currentSongLength.toDouble()).toInt()
+                bundle.putInt("currentSongTime", currentSong.currentSongTime)
                 sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
             }
         })
     }
 
     private fun updateViews() {
-        if (currentSongTexView.text != currentSongName) {
-            if (currentSongName.isNotEmpty() && currentSongName != "null") {
-                currentSongTexView.text = currentSongName
+        if (currentSongTexView.text != currentSong.currentSongName) {
+            if (currentSong.currentSongName.isNotEmpty() && currentSong.currentSongName != "null") {
+                currentSongTexView.text = currentSong.currentSongName
             } else {
                 currentSongTexView.text = "- - -"
             }
         }
 
-        currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongTime.toLong())
-        currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSongLength)
-        if (currentSongLength > 0) {
-            currentSongTimeBarSeekBar.progress = ((currentSongTime.toFloat()  / currentSongLength.toFloat()) * 100f).toInt()
+        currentSongCurrentTimeTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSong.currentSongTime)
+        currentSongLengthTexView.text = Utils.millisecondsToHoursMinutesAndSeconds(currentSong.currentSongLength)
+        if (currentSong.currentSongLength > 0) {
+            currentSongTimeBarSeekBar.progress = ((currentSong.currentSongTime.toFloat()  / currentSong.currentSongLength.toFloat()) * 100f).toInt()
         }
 
-        if (playing) {
+        if (currentSong.playing) {
             playFloatingButton.setImageResource(R.drawable.baseline_pause_white_48)
         } else {
             playFloatingButton.setImageResource(R.drawable.baseline_play_arrow_white_48)
@@ -303,11 +299,11 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01.toString()) {
                         Log.l("MinichainsPlayerActivityLog:: UPDATE_ACTIVITY_VARIABLES_01")
                         if (extras != null) {
-                            playing = extras.getBoolean("playing")
-                            currentSongPath = extras.getString("currentSongPath").toString()
-                            currentSongInteger = extras.getInt("currentSongInteger")
-                            currentSongName = extras.getString("currentSongName").toString()
-                            currentSongLength = extras.getLong("currentSongLength")
+                            currentSong.playing = extras.getBoolean("playing")
+                            currentSong.currentSongPath = extras.getString("currentSongPath").toString()
+                            currentSong.currentSongInteger = extras.getInt("currentSongInteger")
+                            currentSong.currentSongName = extras.getString("currentSongName").toString()
+                            currentSong.currentSongLength = extras.getInt("currentSongLength")
                             listOfSongsSize = extras.getInt("listOfSongsSize")
                             shuffle = extras.getBoolean("shuffle")
                         }
@@ -315,7 +311,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02.toString()) {
                         Log.l("MinichainsPlayerActivityLog:: UPDATE_ACTIVITY_VARIABLES_02")
                         if (extras != null) {
-                            currentSongTime = extras.getInt("currentSongTime")
+                            currentSong.currentSongTime = extras.getInt("currentSongTime")
                         }
                         updateViews()
                     } else {

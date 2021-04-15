@@ -39,13 +39,10 @@ class MinichainsPlayerService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var updateActivityVariables01 = false
     private var updateActivityVariables02 = false
-    private var playing = false
-    private var currentSongTime = 0
-    private var currentSongPath = ""
-    private var currentSongInteger = 0
-    private var currentSongName = ""
-    private var currentSongLength: Long = 0
-    private var listOfSongsSize = 0
+
+    private var currentSong = CurrentSong()
+
+    private var listOfSongsSize: Int = 0
     private var shuffle = false
 
     private var listOfSongsSorted: ArrayList<SongFile>? = null
@@ -81,7 +78,7 @@ class MinichainsPlayerService : Service() {
         DataBase.dataBaseHelper = FeedReaderDbHelper(this)
 
         if (DataBase.getMusicPath().isEmpty()) {
-            if (getStorageDirectory().exists()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && getStorageDirectory().exists()) {
                 DataBase.setMusicPath(this, getStorageDirectory().path)
             } else if (getExternalStorageDirectory().exists()) {
                 DataBase.setMusicPath(this, getExternalStorageDirectory().path)
@@ -176,14 +173,14 @@ class MinichainsPlayerService : Service() {
     private fun updateActivityVariables() {
         var bundle01 = Bundle()
         if (mediaPlayer != null) setPlaying(mediaPlayer?.isPlaying!!)
-        bundle01.putBoolean("playing", playing)
-        bundle01.putString("currentSongPath", currentSongPath)
-        bundle01.putInt("currentSongInteger", currentSongInteger)
-        if (getListOfSongs() != null && currentSongInteger >= 0 && currentSongInteger < getListOfSongs()?.size!!) {
-            setCurrentSongName(getListOfSongs()?.get(currentSongInteger)?.songName!!)
-            bundle01.putString("currentSongName", currentSongName)
-            setCurrentSongLength(getListOfSongs()?.get(currentSongInteger)?.length!!)
-            bundle01.putLong("currentSongLength", currentSongLength)
+        bundle01.putBoolean("playing", currentSong.playing)
+        bundle01.putString("currentSongPath", currentSong.currentSongPath)
+        bundle01.putInt("currentSongInteger", currentSong.currentSongInteger)
+        if (getListOfSongs() != null && currentSong.currentSongInteger >= 0 && currentSong.currentSongInteger < getListOfSongs()?.size!!) {
+            setCurrentSongName(getListOfSongs()?.get(currentSong.currentSongInteger)?.songName!!)
+            bundle01.putString("currentSongName", currentSong.currentSongName)
+            setCurrentSongLength(getListOfSongs()?.get(currentSong.currentSongInteger)?.length!!)
+            bundle01.putInt("currentSongLength", currentSong.currentSongLength)
             setListOfSongsSize(getListOfSongs()?.size!!)
             bundle01.putInt("listOfSongsSize", listOfSongsSize)
         }
@@ -196,7 +193,7 @@ class MinichainsPlayerService : Service() {
 
         var bundle02 = Bundle()
         if (mediaPlayer != null) setCurrentSongTime(mediaPlayer?.currentPosition!!)
-        bundle02.putInt("currentSongTime", currentSongTime)
+        bundle02.putInt("currentSongTime", currentSong.currentSongTime)
         if (updateActivityVariables02) {
             sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02, bundle02)
             updateActivityVariables02 = false
@@ -209,36 +206,36 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun setPlaying(newPlaying: Boolean) {
-        if (playing != newPlaying) {
-            playing = newPlaying
+        if (currentSong.playing != newPlaying) {
+            currentSong.playing = newPlaying
             updateActivityVariables01 = true
         }
     }
 
     private fun setCurrentSongPath(newCurrentSongPath: String) {
-        if (currentSongPath != newCurrentSongPath) {
-            currentSongPath = newCurrentSongPath
+        if (currentSong.currentSongPath != newCurrentSongPath) {
+            currentSong.currentSongPath = newCurrentSongPath
             updateActivityVariables01 = true
         }
     }
 
     private fun setCurrentSongInteger(newCurrentSongInteger: Int) {
-        if (currentSongInteger != newCurrentSongInteger) {
-            currentSongInteger = newCurrentSongInteger
+        if (currentSong.currentSongInteger != newCurrentSongInteger) {
+            currentSong.currentSongInteger = newCurrentSongInteger
             updateActivityVariables01 = true
         }
     }
 
     private fun setCurrentSongName(newCurrentSongName: String) {
-        if (currentSongName != newCurrentSongName) {
-            currentSongName = newCurrentSongName
+        if (currentSong.currentSongName != newCurrentSongName) {
+            currentSong.currentSongName = newCurrentSongName
             updateActivityVariables01 = true
         }
     }
 
-    private fun setCurrentSongLength(newCurrentSongLength: Long) {
-        if (currentSongLength != newCurrentSongLength) {
-            currentSongLength = newCurrentSongLength
+    private fun setCurrentSongLength(newCurrentSongLength: Int) {
+        if (currentSong.currentSongLength != newCurrentSongLength) {
+            currentSong.currentSongLength = newCurrentSongLength
             updateActivityVariables01 = true
         }
     }
@@ -255,7 +252,7 @@ class MinichainsPlayerService : Service() {
             shuffle = newShuffle
             if (shuffle) shuffle(listOfSongsShuffled!!)
             //Changing the listOfSongs we use. We need to find the position of the current song on that list
-            updateCurrentSongInteger(currentSongName)
+            updateCurrentSongInteger(currentSong.currentSongName)
             updateCurrentSongInfo()
             updateActivityVariables01 = true
         }
@@ -267,17 +264,17 @@ class MinichainsPlayerService : Service() {
             if (getListOfSongs()!![i].songName == songName) break
             songInteger++
         }
-        currentSongInteger = songInteger
+        currentSong.currentSongInteger = songInteger
     }
 
     private fun setCurrentSongTime(newCurrentSongTime: Int) {
-        if (newCurrentSongTime in 0 until currentSongLength) {
-            currentSongTime = newCurrentSongTime
+        if (newCurrentSongTime in 0 until currentSong.currentSongLength) {
+            currentSong.currentSongTime = newCurrentSongTime
             updateActivityVariables02 = true
         }
     }
 
-    private fun play(songPath: String = currentSongPath, songTime: Int = currentSongTime) {
+    private fun play(songPath: String = currentSong.currentSongPath, songTime: Int = currentSong.currentSongTime) {
         Log.l("Play $songPath")
         if (getListOfSongs().isNullOrEmpty()) return
         setCurrentSongPath(songPath)
@@ -289,10 +286,10 @@ class MinichainsPlayerService : Service() {
             mediaPlayer?.setOnPreparedListener {
                 mediaPlayer?.seekTo(songTime)
                 mediaPlayer?.start()
-                DataBase.setLastSongPlayed(currentSongName)
-                Toast.makeText(this, getString(R.string.playing_song, currentSongName), Toast.LENGTH_SHORT).show()
+                DataBase.setLastSongPlayed(currentSong.currentSongName)
+                Toast.makeText(this, getString(R.string.playing_song, currentSong.currentSongName), Toast.LENGTH_SHORT).show()
                 mediaPlayer?.setOnCompletionListener {
-                    if (currentSongTime > 0) {
+                    if (currentSong.currentSongTime > 0) {
                         next()
                     }
                 }
@@ -323,10 +320,10 @@ class MinichainsPlayerService : Service() {
     private fun next(next: Boolean = true) {
         if (getListOfSongs().isNullOrEmpty()) return
         if (next) {
-            setCurrentSongInteger((currentSongInteger + 1) % getListOfSongs()?.size!!)
+            setCurrentSongInteger((currentSong.currentSongInteger + 1) % getListOfSongs()?.size!!)
         } else {
-            setCurrentSongInteger(currentSongInteger - 1)
-            if (currentSongInteger < 0) {
+            setCurrentSongInteger(currentSong.currentSongInteger - 1)
+            if (currentSong.currentSongInteger < 0) {
                 setCurrentSongInteger(getListOfSongs()?.size!! - 1)
             }
         }
@@ -343,24 +340,26 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun updateCurrentSongInfo() {
-        if (getListOfSongs() != null && getListOfSongs()?.isNotEmpty()!! && currentSongInteger >= 0 && currentSongInteger < getListOfSongs()?.size!!) {
-            setCurrentSongName(getListOfSongs()?.get(currentSongInteger)?.songName.toString())
-            setCurrentSongPath(String().plus(getListOfSongs()?.get(currentSongInteger)?.path.toString())
+        if (getListOfSongs() != null && getListOfSongs()?.isNotEmpty()!!
+            && currentSong.currentSongInteger >= 0
+            && currentSong.currentSongInteger < getListOfSongs()?.size!!) {
+            setCurrentSongName(getListOfSongs()?.get(currentSong.currentSongInteger)?.songName.toString())
+            setCurrentSongPath(String().plus(getListOfSongs()?.get(currentSong.currentSongInteger)?.path.toString())
                 .plus("/")
-                .plus(getListOfSongs()?.get(currentSongInteger)?.songName)
+                .plus(getListOfSongs()?.get(currentSong.currentSongInteger)?.songName)
                 .plus(".")
-                .plus(getListOfSongs()?.get(currentSongInteger)?.format))
+                .plus(getListOfSongs()?.get(currentSong.currentSongInteger)?.format))
 
-            if (getListOfSongs()?.get(currentSongInteger)?.length!!.toInt() <= 0) {
+            if (getListOfSongs()?.get(currentSong.currentSongInteger)?.length!!.toInt() <= 0) {
                 try {
                     val metaRetriever = MediaMetadataRetriever()
-                    metaRetriever.setDataSource(currentSongPath)
+                    metaRetriever.setDataSource(currentSong.currentSongPath)
                     val durationString = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    var duration: Long = -1
+                    var duration: Int = -1
                     if (durationString != null) {
-                        duration = durationString.toLong()
+                        duration = durationString.toInt()
                     }
-                    getListOfSongs()?.get(currentSongInteger)?.length = duration
+                    getListOfSongs()?.get(currentSong.currentSongInteger)?.length = duration
                 } catch (e: Exception) {
                     Log.e("Error. Current song could not be updated.")
                 }
@@ -511,12 +510,12 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: START_PLAYING_SONG")
                         mediaPlayer?.pause()
                         setCurrentSongName(extras?.getString("currentSongName").toString())
-                        setCurrentSongInteger(getSongInteger(currentSongName))
-                        setCurrentSongPath(getListOfSongs()?.get(currentSongInteger)?.path!!.toString()
+                        setCurrentSongInteger(getSongInteger(currentSong.currentSongName))
+                        setCurrentSongPath(getListOfSongs()?.get(currentSong.currentSongInteger)?.path!!.toString()
                             .plus("/")
-                            .plus(currentSongName)
+                            .plus(currentSong.currentSongName)
                             .plus(".")
-                            .plus(getListOfSongs()?.get(currentSongInteger)?.format!!.toString()))
+                            .plus(getListOfSongs()?.get(currentSong.currentSongInteger)?.format!!.toString()))
                         setCurrentSongTime(0)
                         play()
                     } else if (broadcast == BroadcastMessage.STOP_PLAYING.toString()) {
@@ -542,7 +541,7 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: SET_CURRENT_SONG_TIME")
                         if (extras != null) {
                             setCurrentSongTime(extras.getInt("currentSongTime"))
-                            mediaPlayer?.seekTo(currentSongTime)
+                            mediaPlayer?.seekTo(currentSong.currentSongTime)
                         }
                     } else if (broadcast == Intent.ACTION_MEDIA_BUTTON) {
                         Log.l("MinichainsPlayerServiceLog:: ACTION_MEDIA_BUTTON")
@@ -607,8 +606,8 @@ class MinichainsPlayerService : Service() {
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, intent.flags)
 
-        notificationTitle = currentSongName
-        notificationPlaying = playing
+        notificationTitle = currentSong.currentSongName
+        notificationPlaying = currentSong.playing
         notification = NotificationCompat.Builder(this, serviceNotificationStringId)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setSmallIcon(R.drawable.baseline_music_note_24)
@@ -626,13 +625,13 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun updateNotification() {
-        if (notificationTitle != currentSongName || notificationPlaying != playing) {
-            if (notificationTitle != currentSongName) {
-                notificationTitle = currentSongName
+        if (notificationTitle != currentSong.currentSongName || notificationPlaying != currentSong.playing) {
+            if (notificationTitle != currentSong.currentSongName) {
+                notificationTitle = currentSong.currentSongName
                 notification.setContentTitle(notificationTitle)
             }
-            if (notificationPlaying != playing) {
-                notificationPlaying = playing
+            if (notificationPlaying != currentSong.playing) {
+                notificationPlaying = currentSong.playing
                 updateNotificationActions()
             }
             notificationManagerCompat?.notify(serviceNotificationId, notification.build())
@@ -659,7 +658,7 @@ class MinichainsPlayerService : Service() {
 
         var listOfActions = ArrayList<NotificationCompat.Action>()
         listOfActions.add(NotificationCompat.Action(R.drawable.baseline_skip_previous_white_36, "Previous", previousPendingIntent))
-        if (playing) {
+        if (currentSong.playing) {
             listOfActions.add(NotificationCompat.Action(R.drawable.baseline_pause_white_36, "Pause", playStopPendingIntent))
         } else {
             listOfActions.add(NotificationCompat.Action(R.drawable.baseline_play_arrow_white_36, "Play", playStopPendingIntent))

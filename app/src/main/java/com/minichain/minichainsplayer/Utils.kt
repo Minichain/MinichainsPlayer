@@ -4,6 +4,10 @@ import android.content.res.Resources
 
 class Utils {
     companion object {
+        fun millisecondsToHoursMinutesAndSeconds(milliseconds: Int?): String {
+            return millisecondsToHoursMinutesAndSeconds(milliseconds?.toLong());
+        }
+
         fun millisecondsToHoursMinutesAndSeconds(milliseconds: Long?): String {
             if (milliseconds == null || milliseconds <= 0) return "0:00"
             val seconds = Math.floor((milliseconds / 1000.0) % 60).toInt()

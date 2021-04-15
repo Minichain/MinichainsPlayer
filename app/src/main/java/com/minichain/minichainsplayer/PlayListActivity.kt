@@ -28,12 +28,9 @@ class PlayListActivity : AppCompatActivity() {
     private lateinit var currentSongTimeBarSeekBar: SeekBar
     private lateinit var playListEmptyTextView: TextView
 
-    private var currentSongInteger = -1
-    private var currentSongName = ""
-    private var currentSongLength: Long = -1
-    private var listOfSongsSize = -1
-    private var playing = false
-    private var currentSongTime: Int = 0
+    private lateinit var currentSong: CurrentSong
+
+    private var listOfSongsSize: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,10 +87,12 @@ class PlayListActivity : AppCompatActivity() {
         currentSongTexView.isSelected = true
         currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar_play_list)
 
-        playing = intent.getBooleanExtra("PLAYING", false)
-        currentSongName = intent.getStringExtra("CURRENT_SONG_NAME").toString()
-        currentSongTime = intent.getIntExtra("CURRENT_SONG_TIME", 0)
-        currentSongLength = intent.getLongExtra("CURRENT_SONG_LENGTH", 0)
+        currentSong = CurrentSong(0, intent.getIntExtra(
+            "CURRENT_SONG_LENGTH", 0),
+            intent.getStringExtra("CURRENT_SONG_NAME").toString(),
+            "",
+            intent.getIntExtra("CURRENT_SONG_TIME", 0),
+            intent.getBooleanExtra("PLAYING", false))
 
         val arrayListOfSongs = DataBase.getListOfSongs()
         if (arrayListOfSongs.isNullOrEmpty() || arrayListOfSongs[0] == null) {
@@ -112,8 +111,8 @@ class PlayListActivity : AppCompatActivity() {
             }
 
             playListView.post(Runnable {
-                updateCurrentSongInteger(arrayListOfSongs.indexOf(currentSongName))
-                playListView.setSelectionFromTop(currentSongInteger, playListView.height / 2)
+                updateCurrentSongInteger(arrayListOfSongs.indexOf(currentSong.currentSongName))
+                playListView.setSelectionFromTop(currentSong.currentSongInteger, playListView.height / 2)
             })
 
             playListView.setOnScrollChangeListener { view, i, i2, i3, i4 ->
@@ -127,8 +126,8 @@ class PlayListActivity : AppCompatActivity() {
             }
 
             playButton.setOnClickListener {
-                if (currentSongName != null && currentSongName != "") {
-                    if (!playing) {
+                if (currentSong.currentSongName != "") {
+                    if (!currentSong.playing) {
                         sendBroadcastToService(BroadcastMessage.START_PLAYING)
                         playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
                     } else {
@@ -158,8 +157,8 @@ class PlayListActivity : AppCompatActivity() {
 
                 override fun onStopTrackingTouch(seekBar: SeekBar) {
                     var bundle = Bundle()
-                    currentSongTime = ((currentSongTimeBarSeekBar.progress.toDouble() / 100.0) * currentSongLength.toDouble()).toInt()
-                    bundle.putInt("currentSongTime", currentSongTime)
+                    currentSong.currentSongTime = ((currentSongTimeBarSeekBar.progress.toDouble() / 100.0) * currentSong.currentSongLength.toDouble()).toInt()
+                    bundle.putInt("currentSongTime", currentSong.currentSongTime)
                     sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
                 }
             })
@@ -184,15 +183,15 @@ class PlayListActivity : AppCompatActivity() {
     }
 
     private fun updateViews() {
-        if (currentSongTexView.text != currentSongName) {
-            currentSongTexView.text = currentSongName
+        if (currentSongTexView.text != currentSong.currentSongName) {
+            currentSongTexView.text = currentSong.currentSongName
         }
 
-        if (currentSongLength > 0) {
-            currentSongTimeBarSeekBar.progress = ((currentSongTime.toFloat()  / currentSongLength.toFloat()) * 100f).toInt()
+        if (currentSong.currentSongLength > 0) {
+            currentSongTimeBarSeekBar.progress = ((currentSong.currentSongTime.toFloat()  / currentSong.currentSongLength.toFloat()) * 100f).toInt()
         }
 
-        if (playing) {
+        if (currentSong.playing) {
             playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_pause_white_48)
         } else {
             playButton.background = ContextCompat.getDrawable(this, R.drawable.baseline_play_arrow_white_48)
@@ -230,16 +229,16 @@ class PlayListActivity : AppCompatActivity() {
                     } else if (broadcast == BroadcastMessage.NEXT_SONG.toString()) {
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01.toString()) {
                         if (extras != null) {
-                            playing = extras.getBoolean("playing")
+                            currentSong.playing = extras.getBoolean("playing")
                             updateCurrentSongInteger(extras.getInt("currentSongInteger"))
-                            currentSongName = extras.getString("currentSongName").toString()
-                            currentSongLength = extras.getLong("currentSongLength")
+                            currentSong.currentSongName = extras.getString("currentSongName").toString()
+                            currentSong.currentSongLength = extras.getInt("currentSongLength")
                             listOfSongsSize = extras.getInt("listOfSongsSize")
                         }
                         updateViews()
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_02.toString()) {
                         if (extras != null) {
-                            currentSongTime = extras.getInt("currentSongTime")
+                            currentSong.currentSongTime = extras.getInt("currentSongTime")
                         }
                         updateViews()
                     } else {
@@ -252,16 +251,16 @@ class PlayListActivity : AppCompatActivity() {
     }
 
     private fun updateCurrentSongInteger(newInteger: Int) {
-        if (currentSongInteger != newInteger) {
-            currentSongInteger = newInteger
-            currentSongName = playListView.adapter.getItem(newInteger).toString()
+        if (currentSong.currentSongInteger != newInteger) {
+            currentSong.currentSongInteger = newInteger
+            currentSong.currentSongName = playListView.adapter.getItem(newInteger).toString()
         }
         updateListView()
     }
 
     private fun updateListView() {
         for (i in 0 until playListView.size step 1) {
-            if (playListView.adapter.getItem(playListView.firstVisiblePosition + i) == currentSongName) {
+            if (playListView.adapter.getItem(playListView.firstVisiblePosition + i) == currentSong.currentSongName) {
                 playListView[i].background = getDrawable(R.color.grey_00)
             } else {
                 playListView[i].background = getDrawable(R.color.grey_03)
