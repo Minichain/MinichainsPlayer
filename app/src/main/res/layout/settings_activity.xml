@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grey_02"
+    android:background="@color/color_04"
     android:orientation="vertical"
     tools:context="SettingsActivity"
     >
@@ -105,7 +105,7 @@
                         android:inputType="text"
                         android:textColor="@color/white"
                         android:hint="@string/music_path"
-                        android:textColorHint="@color/white_soft"
+                        android:textColorHint="@color/color_01"
                         />
                 </RelativeLayout>
                 <RelativeLayout

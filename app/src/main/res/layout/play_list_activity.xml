@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grey_03"
+    android:background="@color/color_04"
     tools:context=".PlayListActivity"
     android:focusable="true"
     android:focusableInTouchMode="true"
@@ -24,8 +24,8 @@
             android:focusableInTouchMode="true"
             android:textColor="@color/white"
             android:hint="@string/play_list_filter"
-            android:textColorHint="@color/grey_00"
-            android:background="@color/grey_03"
+            android:textColorHint="@color/color_02"
+            android:background="@color/color_04"
             android:layout_margin="10dp"
             />
     </RelativeLayout>
@@ -60,7 +60,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/grey_02"
+            android:background="@color/color_04"
             android:orientation="vertical"
             >
             <RelativeLayout

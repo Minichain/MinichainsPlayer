@@ -15,6 +15,8 @@ MinichainsPlayer is, for now, a very simple Music Player developed in Kotlin cap
 
 ## Patch Notes
 
+* **v0.07.07**
+    * New color palette!
 * **v0.07.06**
     * Last song played is now stored into DataBase.
 * **v0.07.05**
