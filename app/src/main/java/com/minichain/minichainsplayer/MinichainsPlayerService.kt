@@ -5,7 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.os.Build
@@ -13,6 +16,7 @@ import android.os.Bundle
 import android.os.Environment.getExternalStorageDirectory
 import android.os.Environment.getStorageDirectory
 import android.os.IBinder
+import android.os.ResultReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.widget.Toast
@@ -21,20 +25,10 @@ import androidx.core.app.NotificationManagerCompat
 import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.COLUMN_SONG
 import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
 import java.io.File
-import java.util.*
 import java.util.Collections.shuffle
-import kotlin.collections.ArrayList
 
 class MinichainsPlayerService : Service() {
     private lateinit var minichainsPlayerBroadcastReceiver: MinichainsPlayerServiceBroadcastReceiver
-    private lateinit var notification: NotificationCompat.Builder
-    private lateinit var notificationName: CharSequence
-    private lateinit var notificationTitle: CharSequence
-    private var notificationPlaying = false
-    private var notificationManager: NotificationManager? = null
-    private var notificationManagerCompat: NotificationManagerCompat? = null
-    private val serviceNotificationStringId = "MINICHAINS_PLAYER_SERVICE_NOTIFICATION"
-    private val serviceNotificationId = 1
 
     private var mediaPlayer: MediaPlayer? = null
     private var updateActivityVariables01 = false
@@ -47,9 +41,6 @@ class MinichainsPlayerService : Service() {
 
     private var listOfSongsSorted: ArrayList<SongFile>? = null
     private var listOfSongsShuffled: ArrayList<SongFile>? = null
-
-    private lateinit var mediaSession: MediaSessionCompat
-    private var timesPressingMediaButton = 0
 
     private lateinit var updateActivityInfoThread: Thread
 
@@ -72,6 +63,7 @@ class MinichainsPlayerService : Service() {
 
         unregisterReceiver(minichainsPlayerBroadcastReceiver)
         removeMinichainsPlayerServiceNotification()
+        mediaSession.release()
     }
 
     private fun init() {
@@ -107,48 +99,46 @@ class MinichainsPlayerService : Service() {
         createMinichainsPlayerServiceNotification()
     }
 
-    var mediaSessionTimer = Timer()
-
     /**
      * MediaSession handles the inputs from the headphones. The user can pause/resume the
      * current playing song, and play the next/previous song.
      **/
+    private lateinit var mediaSession: MediaSessionCompat
+
     private fun initMediaSessions() {
         mediaSession = MediaSessionCompat(applicationContext, MinichainsPlayerService::class.java.simpleName)
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
         mediaSession.setMediaButtonReceiver(null)
-        var mStateBuilder = PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY)
-        mediaSession.setPlaybackState(mStateBuilder.build())
+        mediaSession.setPlaybackState(PlaybackStateCompat.Builder().setActions(
+            PlaybackStateCompat.ACTION_PLAY or
+            PlaybackStateCompat.ACTION_PAUSE or
+            PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+        ).build())
+
         mediaSession.setCallback(object : MediaSessionCompat.Callback() {
-            //callback code is here.
             override fun onPlay() {
-                mediaSessionTimer.cancel()
-                mediaSessionTimer = Timer()
-                mediaSessionTimer.schedule(object : TimerTask() {
-                    override fun run() {
-                        Thread(Runnable {
-                            Log.l("timesPressingMediaButton: $timesPressingMediaButton")
-                            if (timesPressingMediaButton == 1) {
-                                if (mediaPlayer != null && !mediaPlayer?.isPlaying!!) {
-                                    play()
-                                } else {
-                                    mediaPlayer?.pause()
-                                }
-                            } else if (timesPressingMediaButton == 2) {
-                                next()
-                            } else if (timesPressingMediaButton >= 3) {
-                                previous()
-                            }
+                Log.l("MediaSession:: onPlay")
+                if (mediaPlayer != null && !mediaPlayer?.isPlaying!!) {
+                    play()
+                } else {
+                    mediaPlayer?.pause()
+                }
+            }
 
-                            timesPressingMediaButton = 0
-                        }).start()
-                    }
-                }, 450)
+            override fun onSkipToNext() {
+                Log.l("MediaSession:: onSkipToNext")
+                super.onSkipToNext()
+                next()
+            }
 
-                Log.l("timesPressingMediaButton++")
-                timesPressingMediaButton++
+            override fun onSkipToPrevious() {
+                Log.l("MediaSession:: onSkipToPrevious")
+                super.onSkipToPrevious()
+                previous()
             }
         })
+
         mediaSession.isActive = true
     }
 
@@ -555,7 +545,7 @@ class MinichainsPlayerService : Service() {
                         Log.l("MinichainsPlayerServiceLog:: CLEAR_PLAYLIST")
                         clearPlayList()
                     } else {
-//                        Log.l("MinichainsPlayerServiceLog:: Unknown broadcast received")
+//                        Log.l("MinichainsPlayerServiceLog:: Unregistered broadcast received. $broadcast")
                     }
                 }
             } catch (ex: Exception) {
@@ -583,6 +573,15 @@ class MinichainsPlayerService : Service() {
     /**
      * SERVICE NOTIFICATION
      **/
+
+    private lateinit var notification: NotificationCompat.Builder
+    private lateinit var notificationName: CharSequence
+    private lateinit var notificationTitle: CharSequence
+    private var notificationPlaying = false
+    private var notificationManager: NotificationManager? = null
+    private var notificationManagerCompat: NotificationManagerCompat? = null
+    private val serviceNotificationStringId = "MINICHAINS_PLAYER_SERVICE_NOTIFICATION"
+    private val serviceNotificationId = 1
 
     private fun createMinichainsPlayerServiceNotification() {
         //Service notification
@@ -614,14 +613,12 @@ class MinichainsPlayerService : Service() {
             .setContentTitle(notificationTitle)
             .setContentIntent(pendingIntent)
             .setAutoCancel(false)
-            .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(1)
-                .setMediaSession(mediaSession.sessionToken))
+            .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionToken))
 
         updateNotificationActions()
 
         notificationManagerCompat?.notify(serviceNotificationId, notification.build())
-        this.startForeground(1, notification.build())
+        this.startForeground(serviceNotificationId, notification.build())
     }
 
     private fun updateNotification() {
