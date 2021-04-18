@@ -61,10 +61,6 @@ class PlayListActivity : AppCompatActivity() {
     override fun onStop() {
         Log.l("PlayListActivityLog:: onStop")
         super.onStop()
-        try {
-            unregisterReceiver(playListBroadcastReceiver)
-        } catch (e: IllegalArgumentException) {
-        }
     }
 
     private fun init() {
@@ -87,8 +83,8 @@ class PlayListActivity : AppCompatActivity() {
         currentSongTexView.isSelected = true
         currentSongTimeBarSeekBar = this.findViewById(R.id.current_song_time_bar_play_list)
 
-        currentSong = CurrentSong(0, intent.getIntExtra(
-            "CURRENT_SONG_LENGTH", 0),
+        currentSong = CurrentSong(0,
+            intent.getIntExtra("CURRENT_SONG_LENGTH", 0),
             intent.getStringExtra("CURRENT_SONG_NAME").toString(),
             "",
             intent.getIntExtra("CURRENT_SONG_TIME", 0),
@@ -103,19 +99,20 @@ class PlayListActivity : AppCompatActivity() {
             arrayAdapter = CustomArrayAdapter(this, R.layout.play_list_layout, arrayListOfSongs)
             playListView.adapter = arrayAdapter
 
-            playListView.setOnItemClickListener { adapterView, view, i, l ->
-                var bundle = Bundle()
+            playListView.setOnItemClickListener { _, _, i, _ ->
+                val bundle = Bundle()
                 val currentSongName = playListView.adapter.getItem(i).toString()
+                Log.l("AdriHell:: PlayListActivity item clicked: $currentSongName")
                 bundle.putString("currentSongName", currentSongName)
                 sendBroadcastToService(BroadcastMessage.START_PLAYING_SONG, bundle)
             }
 
             playListView.post(Runnable {
-                updateCurrentSongInteger(arrayListOfSongs.indexOf(currentSong.currentSongName))
+                updateCurrentSongInteger(currentSong.currentSongName, arrayListOfSongs.indexOf(currentSong.currentSongName))
                 playListView.setSelectionFromTop(currentSong.currentSongInteger, playListView.height / 2)
             })
 
-            playListView.setOnScrollChangeListener { view, i, i2, i3, i4 ->
+            playListView.setOnScrollChangeListener { _, _, _, _, _ ->
                 updateListView()
             }
 
@@ -230,7 +227,7 @@ class PlayListActivity : AppCompatActivity() {
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01.toString()) {
                         if (extras != null) {
                             currentSong.playing = extras.getBoolean("playing")
-                            updateCurrentSongInteger(extras.getInt("currentSongInteger"))
+                            updateCurrentSongInteger(extras.getString("currentSongName").toString(), extras.getInt("currentSongInteger"))
                             currentSong.currentSongName = extras.getString("currentSongName").toString()
                             currentSong.currentSongLength = extras.getInt("currentSongLength")
                             listOfSongsSize = extras.getInt("listOfSongsSize")
@@ -250,11 +247,9 @@ class PlayListActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateCurrentSongInteger(newInteger: Int) {
-        if (currentSong.currentSongInteger != newInteger) {
-            currentSong.currentSongInteger = newInteger
-            currentSong.currentSongName = playListView.adapter.getItem(newInteger).toString()
-        }
+    private fun updateCurrentSongInteger(currentSongName: String, currentSongInteger: Int) {
+        currentSong.currentSongName = currentSongName
+        currentSong.currentSongInteger = currentSongInteger
         updateListView()
     }
 

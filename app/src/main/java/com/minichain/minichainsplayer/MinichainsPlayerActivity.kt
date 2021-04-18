@@ -90,10 +90,6 @@ class MinichainsPlayerActivity : AppCompatActivity() {
     override fun onStop() {
         Log.l("MinichainsPlayerActivityLog:: onStop")
         super.onStop()
-        try {
-            unregisterReceiver(minichainsPlayerBroadcastReceiver)
-        } catch (e: IllegalArgumentException) {
-        }
     }
 
     private fun init() {

@@ -15,6 +15,8 @@ MinichainsPlayer is, for now, a very simple Music Player developed in Kotlin cap
 
 ## Patch Notes
 
+* **v0.07.09**
+    * PlayListActivity should be more robust now.
 * **v0.07.08**
     * Headset button was not being captured properly.
     * 1 click -> pause/resume.
