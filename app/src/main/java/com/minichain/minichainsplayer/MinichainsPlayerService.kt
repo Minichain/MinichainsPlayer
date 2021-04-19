@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
+import android.media.audiofx.Visualizer
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment.getExternalStorageDirectory
@@ -19,6 +20,7 @@ import android.os.IBinder
 import android.os.ResultReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -79,6 +81,7 @@ class MinichainsPlayerService : Service() {
         Log.l("Music Path: " + DataBase.getMusicPath())
 
         mediaPlayer = MediaPlayer()
+        initVisualizer()
 
         listOfSongsSorted = ArrayList()
         listOfSongsShuffled = ArrayList()
@@ -354,6 +357,30 @@ class MinichainsPlayerService : Service() {
                     Log.e("Error. Current song could not be updated.")
                 }
             }
+        }
+    }
+
+    private lateinit var visualizer: Visualizer
+
+    private fun initVisualizer() {
+        if (mediaPlayer != null) {
+            visualizer = Visualizer(mediaPlayer!!.audioSessionId)
+            visualizer.captureSize = Visualizer.getCaptureSizeRange()[0]
+
+            visualizer.setDataCaptureListener(object : Visualizer.OnDataCaptureListener {
+                override fun onWaveFormDataCapture(visualizer: Visualizer?, waveform: ByteArray?, samplingRate: Int) {
+
+                }
+
+                override fun onFftDataCapture(visualizer: Visualizer?, fft: ByteArray?, samplingRate: Int) {
+                    val bundle = Bundle()
+                    val spectrum = IntArray(10) { i -> fft!![20 + i * 10].toInt() }
+                    bundle.putIntArray("spectrum", spectrum)
+                    sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_03, bundle)
+                }
+            }, Visualizer.getMaxCaptureRate(), false, true)
+
+            visualizer.enabled = true;
         }
     }
 

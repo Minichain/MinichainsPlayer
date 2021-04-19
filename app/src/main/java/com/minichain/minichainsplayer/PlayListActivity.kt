@@ -102,7 +102,6 @@ class PlayListActivity : AppCompatActivity() {
             playListView.setOnItemClickListener { _, _, i, _ ->
                 val bundle = Bundle()
                 val currentSongName = playListView.adapter.getItem(i).toString()
-                Log.l("AdriHell:: PlayListActivity item clicked: $currentSongName")
                 bundle.putString("currentSongName", currentSongName)
                 sendBroadcastToService(BroadcastMessage.START_PLAYING_SONG, bundle)
             }

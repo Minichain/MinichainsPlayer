@@ -1,6 +1,7 @@
 package com.minichain.minichainsplayer
 
 import android.Manifest
+import android.app.ActionBar
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,17 +10,23 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.FILL_PARENT
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlin.system.exitProcess
+
 
 class MinichainsPlayerActivity : AppCompatActivity() {
     private lateinit var minichainsPlayerBroadcastReceiver: MinichainsPlayerActivityBroadcastReceiver
 
+    private var gLView: MyGLSurfaceView? = null
     private lateinit var playFloatingButton: FloatingActionButton
     private lateinit var previousFloatingButton: FloatingActionButton
     private lateinit var nextFloatingButton: FloatingActionButton
@@ -38,31 +45,8 @@ class MinichainsPlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        checkPermissions()
-    }
-
-    private fun checkPermissions() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            val permissions = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-            ActivityCompat.requestPermissions(this, permissions, 1) //Check the requestCode later
-        } else {
+        if (checkAndRequestPermissions()) {
             init()
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.l("onRequestPermissionsResult, requestCode: $requestCode, permissions: $permissions, grantResults: $grantResults")
-        when (requestCode) {
-            1 -> {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    init()
-                } else {
-                    closeApp()
-                }
-            } else -> {
-
-            }
         }
     }
 
@@ -92,6 +76,41 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         super.onStop()
     }
 
+    private val REQUEST_ID_MULTIPLE_PERMISSIONS: Int = 1
+
+    private fun checkAndRequestPermissions(): Boolean {
+        val readExternalStoragePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+        val recordAudioPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+
+        val listPermissionsNeeded: MutableList<String> = ArrayList()
+        if (readExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        if (recordAudioPermission != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(Manifest.permission.RECORD_AUDIO)
+        }
+
+        if (listPermissionsNeeded.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toTypedArray(), REQUEST_ID_MULTIPLE_PERMISSIONS)
+            return false
+        }
+        return true
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.l("onRequestPermissionsResult, requestCode: $requestCode, permissions: $permissions, grantResults: $grantResults")
+        when (requestCode) {
+            1 -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    init()
+                } else {
+                    closeApp()
+                }
+            }
+        }
+    }
+
     private fun init() {
         Log.l("Init MinichainsPlayerActivity!")
 
@@ -113,6 +132,9 @@ class MinichainsPlayerActivity : AppCompatActivity() {
         }
 
         /** INITIALIZE VIEWS **/
+        val myGLSurfaceViewLayout: LinearLayout = this.findViewById(R.id.my_gl_surface_view)
+        gLView = MyGLSurfaceView(this)
+        myGLSurfaceViewLayout.addView(gLView, ViewGroup.LayoutParams(FILL_PARENT, FILL_PARENT))
         playFloatingButton = this.findViewById(R.id.play_button)
         previousFloatingButton = this.findViewById(R.id.previous_button)
         nextFloatingButton = this.findViewById(R.id.next_button)
@@ -184,6 +206,8 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                 sendBroadcastToService(BroadcastMessage.SET_CURRENT_SONG_TIME, bundle)
             }
         })
+
+        Log.l("Log de Tony: gLView: " + gLView)
     }
 
     private fun updateViews() {
@@ -310,6 +334,13 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                             currentSong.currentSongTime = extras.getInt("currentSongTime")
                         }
                         updateViews()
+                    } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_03.toString()) {
+                        if (extras != null) {
+                            val spectrum: IntArray = extras.getIntArray("spectrum")!!
+                            if (spectrum.isNotEmpty() && gLView != null) {
+                                gLView!!.getRenderer().setSpectrum(spectrum)
+                            }
+                        }
                     } else {
                         Log.l("MinichainsPlayerActivityLog:: Unknown broadcast received")
                     }

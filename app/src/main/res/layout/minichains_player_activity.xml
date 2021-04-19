@@ -9,6 +9,15 @@
     tools:context=".MinichainsPlayerActivity"
     >
 
+    <LinearLayout
+        android:id="@+id/my_gl_surface_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        tools:ignore="MissingConstraints"
+        android:gravity="bottom"
+        />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/play_button"
         android:layout_width="wrap_content"
