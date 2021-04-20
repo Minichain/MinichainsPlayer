@@ -45,5 +45,48 @@ class Utils {
         fun pxToDp(px: Int): Float {
             return (px.toFloat() / Resources.getSystem().displayMetrics.density)
         }
+
+        fun normalize(samples: FloatArray): FloatArray {
+            val index = max(samples)
+            if (index != -1 && index < samples.size) {
+                val maxValue = samples[index]
+                if (maxValue > 0f) {
+                    for (i in samples.indices step 1) {
+                        samples[i] = samples[i] / maxValue
+                    }
+                }
+            }
+            return samples
+        }
+
+        fun max(array: FloatArray): Int {
+            var maxValue: Float = -1f
+            var index: Int = -1
+            for (i in array.indices step 1) {
+                if (array[i] > maxValue) {
+                    maxValue = array[i]
+                    index = i
+                }
+            }
+            return index
+        }
+
+        fun smooth(array: FloatArray): FloatArray {
+            var newArray = FloatArray(array.size)
+            newArray[0] = array[0]
+            newArray[array.size - 1] = array[array.size - 1]
+            for (i in 1 until (array.size - 1) step 1) {
+                newArray[i] = average(floatArrayOf(array[i - 1], array[i], array[i + 1]))
+            }
+            return newArray
+        }
+
+        fun average(array: FloatArray): Float {
+            var sum = 0f
+            for (i in array.indices step 1) {
+                sum += array[i]
+            }
+            return sum / array.size
+        }
     }
 }

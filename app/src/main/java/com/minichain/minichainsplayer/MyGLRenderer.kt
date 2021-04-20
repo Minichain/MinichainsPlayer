@@ -9,7 +9,7 @@ import android.opengl.GLSurfaceView
 
 class MyGLRenderer : GLSurfaceView.Renderer {
     private var myRectangles = ArrayList<Rectangle>()
-    private var spectrum: IntArray = IntArray(10)
+    private var spectrum: FloatArray = FloatArray(10)
 
     private var mProgram: Int = 0
 
@@ -65,7 +65,7 @@ class MyGLRenderer : GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
         for (i in 0 until 10 step 1) {
-            myRectangles[i].update(spectrum[i].toFloat() / 5f)
+            myRectangles[i].update(spectrum[i])
             myRectangles[i].draw(mProgram)
         }
     }
@@ -84,7 +84,7 @@ class MyGLRenderer : GLSurfaceView.Renderer {
         }
     }
 
-    fun setSpectrum(spectrum: IntArray) {
+    fun setSpectrum(spectrum: FloatArray) {
         this.spectrum = spectrum
     }
 }

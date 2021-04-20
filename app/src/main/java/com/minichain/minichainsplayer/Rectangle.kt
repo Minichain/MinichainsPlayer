@@ -87,9 +87,10 @@ class Rectangle {
     }
 
     fun update(height: Float) {
-//        oscillator += 0.1f
-//        this.height = sin(oscillator) * 0.5f + 0.5f
-        this.height -= (this.height - height) / 25f
+        val difference = (this.height - height)
+        if (difference > 0) this.height -= difference / 25f
+        else this.height -= difference / 2.5f
+        if (this.height < 0.05f) this.height = 0.05f
         setVertices(xPosition, yPosition, width, this.height)
     }
 

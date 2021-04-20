@@ -374,12 +374,19 @@ class MinichainsPlayerService : Service() {
 
                 override fun onFftDataCapture(visualizer: Visualizer?, fft: ByteArray?, samplingRate: Int) {
                     val bundle = Bundle()
-                    val spectrum = IntArray(10) { i -> fft!![20 + i * 10].toInt() }
-                    bundle.putIntArray("spectrum", spectrum)
+                    var spectrum = FloatArray(10) {
+                        i -> fft!![i].toFloat()
+                    }
+
+                    spectrum = Utils.normalize(spectrum)
+                    spectrum = Utils.smooth(spectrum)
+
+                    bundle.putFloatArray("spectrum", spectrum)
                     sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_03, bundle)
                 }
             }, Visualizer.getMaxCaptureRate(), false, true)
 
+            Log.l("AdriHell:: visualizer.fs: " + visualizer.samplingRate)
             visualizer.enabled = true;
         }
     }

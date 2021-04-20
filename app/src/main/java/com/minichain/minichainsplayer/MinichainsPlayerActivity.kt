@@ -336,7 +336,7 @@ class MinichainsPlayerActivity : AppCompatActivity() {
                         updateViews()
                     } else if (broadcast == BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_03.toString()) {
                         if (extras != null) {
-                            val spectrum: IntArray = extras.getIntArray("spectrum")!!
+                            val spectrum: FloatArray = extras.getFloatArray("spectrum")!!
                             if (spectrum.isNotEmpty() && gLView != null) {
                                 gLView!!.getRenderer().setSpectrum(spectrum)
                             }
