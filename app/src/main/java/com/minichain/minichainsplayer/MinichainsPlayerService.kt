@@ -17,10 +17,8 @@ import android.os.Bundle
 import android.os.Environment.getExternalStorageDirectory
 import android.os.Environment.getStorageDirectory
 import android.os.IBinder
-import android.os.ResultReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -386,7 +384,6 @@ class MinichainsPlayerService : Service() {
                 }
             }, Visualizer.getMaxCaptureRate(), false, true)
 
-            Log.l("AdriHell:: visualizer.fs: " + visualizer.samplingRate)
             visualizer.enabled = true;
         }
     }
@@ -464,7 +461,7 @@ class MinichainsPlayerService : Service() {
     private fun loadSongListFromDataBase() {
         try {
             val dataBase = DataBase.dataBaseHelper.writableDatabase
-            val cursor = dataBase.rawQuery("SELECT * FROM ${SONG_LIST_TABLE_NAME} ORDER BY ${COLUMN_SONG} ASC", null)
+            val cursor = dataBase.rawQuery("SELECT * FROM ${SONG_LIST_TABLE_NAME} ORDER BY ${COLUMN_SONG} COLLATE NOCASE ASC", null)
             val listOfSongs: ArrayList<SongFile>?
             listOfSongs = null
             if (cursor.moveToFirst()) {

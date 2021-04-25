@@ -15,6 +15,8 @@ MinichainsPlayer is, for now, a very simple Music Player developed in Kotlin cap
 
 ## Patch Notes
 
+* **v0.08.01**
+    * SQL "get list of songs" statement is not case-sensitive anymore.
 * **v0.08.00**
     * Music spectrum added!
 * **v0.07.09**

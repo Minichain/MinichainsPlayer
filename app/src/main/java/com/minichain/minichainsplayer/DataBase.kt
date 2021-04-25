@@ -58,7 +58,7 @@ class DataBase {
             }
             val arrayListOfSongs = arrayOfNulls<String>(numOfSongs)
             val dataBase = dataBaseHelper.writableDatabase
-            val cursor = dataBase.rawQuery("SELECT * FROM ${SONG_LIST_TABLE_NAME} ORDER BY ${COLUMN_SONG} ASC", null)
+            val cursor = dataBase.rawQuery("SELECT * FROM ${SONG_LIST_TABLE_NAME} ORDER BY ${COLUMN_SONG} COLLATE NOCASE ASC", null)
             if (cursor.moveToFirst()) {
                 var i = 0;
                 while (!cursor.isAfterLast) {

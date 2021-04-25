@@ -44,7 +44,7 @@ class Rectangle {
         this.color[0] = Color.red(color) / 256f
         this.color[1] = Color.green(color) / 256f
         this.color[2] = Color.blue(color) / 256f
-        this.color[3] = 0.25f
+        this.color[3] = 0.5f
 
         verticesCount = verticesCoords.size / COORDS_PER_VERTEX
 

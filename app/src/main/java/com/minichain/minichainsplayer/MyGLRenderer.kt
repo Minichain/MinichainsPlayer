@@ -60,7 +60,7 @@ class MyGLRenderer : GLSurfaceView.Renderer {
 
     override fun onDrawFrame(unused: GL10) {
         // Redraw background color
-        GLES20.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
+        GLES20.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
