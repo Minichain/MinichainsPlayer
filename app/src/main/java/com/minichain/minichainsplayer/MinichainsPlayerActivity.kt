@@ -1,7 +1,6 @@
 package com.minichain.minichainsplayer
 
 import android.Manifest
-import android.app.ActionBar
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -10,7 +9,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
-import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
@@ -21,7 +19,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlin.system.exitProcess
-
 
 class MinichainsPlayerActivity : AppCompatActivity() {
     private lateinit var minichainsPlayerBroadcastReceiver: MinichainsPlayerActivityBroadcastReceiver

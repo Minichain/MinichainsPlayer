@@ -37,7 +37,6 @@ class MinichainsPlayerService : Service() {
     private var currentSong = CurrentSong()
 
     private var listOfSongsSize: Int = 0
-    private var shuffle = false
 
     private var listOfSongsSorted: ArrayList<SongFile>? = null
     private var listOfSongsShuffled: ArrayList<SongFile>? = null
@@ -68,6 +67,7 @@ class MinichainsPlayerService : Service() {
 
     private fun init() {
         DataBase.dataBaseHelper = FeedReaderDbHelper(this)
+        Parameter.init()
 
         if (DataBase.getMusicPath().isEmpty()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && getStorageDirectory().exists()) {
@@ -86,7 +86,7 @@ class MinichainsPlayerService : Service() {
         loadSongListFromDataBase()
         if (getListOfSongs() != null && getListOfSongs()?.isNotEmpty()!!) {
             val lastSongPlayed = DataBase.getLastSongPlayed()
-            if (lastSongPlayed != null) updateCurrentSongInteger(DataBase.getLastSongPlayed())
+            if (lastSongPlayed != null) updateCurrentSongInteger(lastSongPlayed)
         }
         updateCurrentSongInfo()
 
@@ -145,6 +145,7 @@ class MinichainsPlayerService : Service() {
 
     private fun initUpdateActivityThread() {
         val sleepTime = 250
+        updateActivityVariables01 = true
         updateActivityInfoThread = object : Thread() {
             override fun run() {
                 try {
@@ -175,7 +176,7 @@ class MinichainsPlayerService : Service() {
             setListOfSongsSize(getListOfSongs()?.size!!)
             bundle01.putInt("listOfSongsSize", listOfSongsSize)
         }
-        bundle01.putBoolean("shuffle", shuffle)
+        bundle01.putBoolean("shuffle", Parameter.shuffle)
 
         if (updateActivityVariables01) {
             sendBroadcastToActivity(BroadcastMessage.UPDATE_ACTIVITY_VARIABLES_01, bundle01)
@@ -192,7 +193,7 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun getListOfSongs(): ArrayList<SongFile>? {
-        return if (shuffle) listOfSongsShuffled
+        return if (Parameter.shuffle) listOfSongsShuffled
         else listOfSongsSorted
     }
 
@@ -239,9 +240,10 @@ class MinichainsPlayerService : Service() {
     }
 
     private fun setShuffle(newShuffle: Boolean) {
-        if (shuffle != newShuffle) {
-            shuffle = newShuffle
-            if (shuffle) shuffle(listOfSongsShuffled!!)
+        if (Parameter.shuffle != newShuffle) {
+            Parameter.shuffle = newShuffle
+            Parameter.setParameter("shuffle", newShuffle.toString())
+            if (Parameter.shuffle) shuffle(listOfSongsShuffled!!)
             //Changing the listOfSongs we use. We need to find the position of the current song on that list
             updateCurrentSongInteger(currentSong.currentSongName)
             updateCurrentSongInfo()
@@ -557,7 +559,7 @@ class MinichainsPlayerService : Service() {
                         next()
                     } else if (broadcast == BroadcastMessage.SHUFFLE.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: SHUFFLE")
-                        setShuffle(!shuffle)
+                        setShuffle(!Parameter.shuffle)
                     } else if (broadcast == BroadcastMessage.SET_CURRENT_SONG_TIME.toString()) {
                         Log.l("MinichainsPlayerServiceLog:: SET_CURRENT_SONG_TIME")
                         if (extras != null) {

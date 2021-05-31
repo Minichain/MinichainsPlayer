@@ -5,7 +5,8 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.provider.BaseColumns
 import com.minichain.minichainsplayer.FeedReaderContract.LasSongPlayed.LAST_SONG_PLAYED_TABLE_NAME
-import com.minichain.minichainsplayer.FeedReaderContract.SettingsTable.SETTINGS_TABLE_NAME
+import com.minichain.minichainsplayer.FeedReaderContract.MusicPathsTable.MUSIC_PATHS_TABLE_NAME
+import com.minichain.minichainsplayer.FeedReaderContract.ParametersTable.PARAMETERS_TABLE_NAME
 import com.minichain.minichainsplayer.FeedReaderContract.SongListTable.SONG_LIST_TABLE_NAME
 
 object FeedReaderContract {
@@ -18,10 +19,16 @@ object FeedReaderContract {
         const val COLUMN_LENGTH = "length"
     }
 
-    object SettingsTable : BaseColumns {
-        const val SETTINGS_TABLE_NAME = "settings"
-        const val COLUMN_SETTING = "setting"
-        const val COLUMN_SETTING_VALUE = "value"
+    object MusicPathsTable : BaseColumns {
+        const val MUSIC_PATHS_TABLE_NAME = "musicPaths"
+        const val COLUMN_MUSIC_PATH = "musicPath"
+        const val COLUMN_MUSIC_PATH_VALUE = "value"
+    }
+
+    object ParametersTable : BaseColumns {
+        const val PARAMETERS_TABLE_NAME = "parameters"
+        const val COLUMN_PARAMETER = "parameter"
+        const val COLUMN_PARAMETER_VALUE = "value"
     }
 
     object LasSongPlayed : BaseColumns {
@@ -37,10 +44,15 @@ val SQL_CREATE_SONG_LIST_ENTRIES = "CREATE TABLE ${SONG_LIST_TABLE_NAME} (" +
         "${FeedReaderContract.SongListTable.COLUMN_FORMAT} TEXT," +
         "${FeedReaderContract.SongListTable.COLUMN_LENGTH} TEXT)"
 
-val SQL_CREATE_SETTINGS_ENTRIES = "CREATE TABLE ${SETTINGS_TABLE_NAME} (" +
+val SQL_CREATE_MUSIC_PATHS_ENTRIES = "CREATE TABLE ${MUSIC_PATHS_TABLE_NAME} (" +
         "${BaseColumns._ID} INTEGER PRIMARY KEY," +
-        "${FeedReaderContract.SettingsTable.COLUMN_SETTING} TEXT," +
-        "${FeedReaderContract.SettingsTable.COLUMN_SETTING_VALUE} TEXT)"
+        "${FeedReaderContract.MusicPathsTable.COLUMN_MUSIC_PATH} TEXT," +
+        "${FeedReaderContract.MusicPathsTable.COLUMN_MUSIC_PATH_VALUE} TEXT)"
+
+val SQL_CREATE_PARAMETERS_ENTRIES = "CREATE TABLE ${PARAMETERS_TABLE_NAME} (" +
+        "${BaseColumns._ID} INTEGER PRIMARY KEY," +
+        "${FeedReaderContract.ParametersTable.COLUMN_PARAMETER} TEXT," +
+        "${FeedReaderContract.ParametersTable.COLUMN_PARAMETER_VALUE} TEXT)"
 
 val SQL_CREATE_LAST_SONG_ENTRIES = "CREATE TABLE ${LAST_SONG_PLAYED_TABLE_NAME} (" +
         "${BaseColumns._ID} INTEGER PRIMARY KEY," +
@@ -48,14 +60,17 @@ val SQL_CREATE_LAST_SONG_ENTRIES = "CREATE TABLE ${LAST_SONG_PLAYED_TABLE_NAME} 
 
 val SQL_DELETE_SONG_LIST_ENTRIES = "DROP TABLE IF EXISTS ${SONG_LIST_TABLE_NAME}"
 
-val SQL_DELETE_SETTINGS_ENTRIES = "DROP TABLE IF EXISTS ${SETTINGS_TABLE_NAME}"
+val SQL_DELETE_MUSIC_PATHS_ENTRIES = "DROP TABLE IF EXISTS ${MUSIC_PATHS_TABLE_NAME}"
+
+val SQL_DELETE_PARAMETERS_ENTRIES = "DROP TABLE IF EXISTS ${PARAMETERS_TABLE_NAME}"
 
 val SQL_DELETE_LAST_SONG_ENTRIES = "DROP TABLE IF EXISTS ${LAST_SONG_PLAYED_TABLE_NAME}"
 
 class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(SQL_CREATE_SONG_LIST_ENTRIES)
-        db.execSQL(SQL_CREATE_SETTINGS_ENTRIES)
+        db.execSQL(SQL_CREATE_MUSIC_PATHS_ENTRIES)
+        db.execSQL(SQL_CREATE_PARAMETERS_ENTRIES)
         db.execSQL(SQL_CREATE_LAST_SONG_ENTRIES)
     }
 
@@ -63,7 +78,8 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
         db.execSQL(SQL_DELETE_SONG_LIST_ENTRIES)
-        db.execSQL(SQL_DELETE_SETTINGS_ENTRIES)
+        db.execSQL(SQL_DELETE_MUSIC_PATHS_ENTRIES)
+        db.execSQL(SQL_DELETE_PARAMETERS_ENTRIES)
         db.execSQL(SQL_DELETE_LAST_SONG_ENTRIES)
         onCreate(db)
     }
@@ -74,7 +90,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
 
     companion object {
         // If you change the database schema, you must increment the database version.
-        const val DATABASE_VERSION = 3
+        const val DATABASE_VERSION = 4
         const val DATABASE_NAME = "MinichainsPlayer.db"
     }
 }
