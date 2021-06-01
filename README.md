@@ -15,6 +15,8 @@ MinichainsPlayer is, for now, a very simple Music Player developed in Kotlin cap
 
 ## Patch Notes
 
+* **v0.08.02**
+    * "Shuffle" parameter is now stored into the DataBase.
 * **v0.08.01**
     * SQL "get list of songs" statement is not case-sensitive anymore.
 * **v0.08.00**
