@@ -118,7 +118,7 @@ class Rectangle {
             }
 
 //            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, verticesCount)
-            GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.size, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
+            GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.size, GLES20.GL_UNSIGNED_SHORT, drawListBuffer)
 
             GLES20.glDisableVertexAttribArray(it)
         }

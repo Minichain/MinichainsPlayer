@@ -462,29 +462,16 @@ class MinichainsPlayerService : Service() {
 
     private fun loadSongListFromDataBase() {
         try {
-            val dataBase = DataBase.dataBaseHelper.writableDatabase
-            val cursor = dataBase.rawQuery("SELECT * FROM ${SONG_LIST_TABLE_NAME} ORDER BY ${COLUMN_SONG} COLLATE NOCASE ASC", null)
-            val listOfSongs: ArrayList<SongFile>?
-            listOfSongs = null
-            if (cursor.moveToFirst()) {
-                while (!cursor.isAfterLast) {
-                    val path = cursor.getString(cursor.getColumnIndex("path"))
-                    val songName = cursor.getString(cursor.getColumnIndex("song"))
-                    val format = cursor.getString(cursor.getColumnIndex("format"))
-                    Log.l("loadSongListFromDataBase: path: $path")
-                    Log.l("loadSongListFromDataBase: songName: $songName")
-                    Log.l("loadSongListFromDataBase: format: $format")
-                    val songFile = SongFile(path, songName, format, -1)
-                    listOfSongs?.add(songFile)
-                    listOfSongsSorted?.add(songFile)
-                    listOfSongsShuffled?.add(songFile)
-                    cursor.moveToNext()
-                }
+            val listOfSongs = DataBase.getArrayListOfSongs()
+            listOfSongsSorted?.clear()
+            listOfSongsShuffled?.clear()
+            for (i in 0 until listOfSongs.size step 1) {
+                listOfSongsSorted?.add(listOfSongs[i])
+                listOfSongsShuffled?.add(listOfSongs[i])
             }
-            cursor.close()
             shuffle(listOfSongsShuffled!!)
         } catch (e: Exception) {
-
+            Log.e("Error loading SongList!")
         }
     }
 

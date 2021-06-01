@@ -5,7 +5,7 @@ import android.content.res.Resources
 class Utils {
     companion object {
         fun millisecondsToHoursMinutesAndSeconds(milliseconds: Int?): String {
-            return millisecondsToHoursMinutesAndSeconds(milliseconds?.toLong());
+            return millisecondsToHoursMinutesAndSeconds(milliseconds?.toLong())
         }
 
         fun millisecondsToHoursMinutesAndSeconds(milliseconds: Long?): String {

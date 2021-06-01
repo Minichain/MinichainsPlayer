@@ -90,7 +90,7 @@ class PlayListActivity : AppCompatActivity() {
             intent.getIntExtra("CURRENT_SONG_TIME", 0),
             intent.getBooleanExtra("PLAYING", false))
 
-        val arrayListOfSongs = DataBase.getListOfSongs()
+        val arrayListOfSongs = DataBase.getArrayOfSongs()
         if (arrayListOfSongs.isNullOrEmpty() || arrayListOfSongs[0] == null) {
             playListEmptyTextView.visibility = View.VISIBLE
             playListView.visibility = View.GONE

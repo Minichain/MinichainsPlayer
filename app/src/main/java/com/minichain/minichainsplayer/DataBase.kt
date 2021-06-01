@@ -45,16 +45,17 @@ class DataBase {
                     }
                 }
             } catch (e: Exception) {
-                Log.e("DataBaseLog: Error inserting song '$newFileName' into database.")
+                Log.e("DataBaseLog: Error inserting/updating song '$newFileName' into database.")
             }
         }
 
         private fun isSongInDataBase(songName: String): Boolean {
-            Log.l("isSongInDataBase: songName: $songName")
-            return isInDataBase(SONG_LIST_TABLE_NAME, COLUMN_SONG, COLUMN_SONG, "songName", songName)
+            val b = isInDataBase(SONG_LIST_TABLE_NAME, COLUMN_SONG, songName)
+            Log.l("Is song in DataBase? songName: $songName, b = $b")
+            return b
         }
 
-        fun getListOfSongs(): Array<String?> {
+        fun getArrayOfSongs(): Array<String?> {
             val numOfSongs = getNumberOfSongs()
             if (numOfSongs <= 0) {
                 return arrayOfNulls(0)
@@ -75,17 +76,34 @@ class DataBase {
             return arrayListOfSongs
         }
 
+        fun getArrayListOfSongs(): ArrayList<SongFile> {
+            val dataBase = dataBaseHelper.readableDatabase
+            val query = "SELECT * FROM $SONG_LIST_TABLE_NAME ORDER BY $COLUMN_SONG COLLATE NOCASE ASC"
+            val cursor = dataBase.rawQuery(query, null)
+            val arrayOfSongs = ArrayList<SongFile>(cursor.count)
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast) {
+                    val path = cursor.getString(cursor.getColumnIndex("path"))
+                    val songName = cursor.getString(cursor.getColumnIndex("song"))
+                    val format = cursor.getString(cursor.getColumnIndex("format"))
+                    Log.l("loadSongListFromDataBase: path: $path")
+                    Log.l("loadSongListFromDataBase: songName: $songName")
+                    Log.l("loadSongListFromDataBase: format: $format")
+                    val songFile = SongFile(path, songName, format, -1)
+                    arrayOfSongs.add(songFile)
+                    cursor.moveToNext()
+                }
+            }
+            cursor.close()
+            return arrayOfSongs
+        }
+
         private fun getNumberOfSongs(): Int {
             val dataBase = dataBaseHelper.readableDatabase
-            try {
-                val cursor = dataBase.rawQuery("SELECT COUNT(*) FROM $SONG_LIST_TABLE_NAME", null)
-                cursor.moveToFirst()
-                val count = cursor.getInt(0);
-                cursor.close()
-                return count
-            } catch (e: Exception) {
-                return -1
-            }
+            val cursor = dataBase.rawQuery("SELECT * FROM $SONG_LIST_TABLE_NAME", null)
+            val count = cursor.count
+            cursor.close()
+            return count
         }
 
         fun clearSongListTable() {
@@ -243,18 +261,18 @@ class DataBase {
 
         /** ALL TABLES **/
 
-        private fun isInDataBase(tableName: String, columnKey: String, key: String): Boolean {
+        private fun isInDataBase(tableName: String, column: String, value: String): Boolean {
             val dataBase = dataBaseHelper.readableDatabase
-            val query = "SELECT * FROM $tableName WHERE $columnKey = '$key'"
+            val query = "SELECT * FROM $tableName WHERE $column = '$value'"
             val cursor = dataBase.rawQuery(query, null)
             val b = cursor.count > 0
             cursor.close()
             return b
         }
 
-        private fun isInDataBase(tableName: String, columnKey: String, columnValue: String, key: String, value: String): Boolean {
+        private fun isInDataBase(tableName: String, column1: String, column2: String, value1: String, value2: String): Boolean {
             val dataBase = dataBaseHelper.readableDatabase
-            val query = "SELECT * FROM $tableName WHERE $columnKey = '$key' AND $columnValue = '$value'"
+            val query = "SELECT * FROM $tableName WHERE $column1 = '$value1' AND $column2 = '$value2'"
             val cursor = dataBase.rawQuery(query, null)
             val b = cursor.count > 0
             cursor.close()
