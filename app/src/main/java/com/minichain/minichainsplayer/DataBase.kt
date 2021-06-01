@@ -128,9 +128,7 @@ class DataBase {
             val cursor = dataBase.rawQuery(
                 "SELECT $COLUMN_PARAMETER_VALUE FROM $PARAMETERS_TABLE_NAME " +
                         "WHERE $COLUMN_PARAMETER = '$parameter'", null)
-            Log.l("AdriHell count " + cursor.count)
             if (cursor.moveToFirst()) {
-                Log.l("AdriHell")
                 value = cursor.getString(0)
             }
             cursor.close()
@@ -246,30 +244,21 @@ class DataBase {
         /** ALL TABLES **/
 
         private fun isInDataBase(tableName: String, columnKey: String, key: String): Boolean {
-            return try {
-                val dataBase = dataBaseHelper.writableDatabase
-                val cursor = dataBase.rawQuery( "SELECT COUNT(${columnKey}) " +
-                        "FROM $tableName WHERE $columnKey = '$key'", null)
-                cursor.moveToFirst()
-            } catch (e: Exception) {
-                false
-            }
+            val dataBase = dataBaseHelper.readableDatabase
+            val query = "SELECT * FROM $tableName WHERE $columnKey = '$key'"
+            val cursor = dataBase.rawQuery(query, null)
+            val b = cursor.count > 0
+            cursor.close()
+            return b
         }
 
         private fun isInDataBase(tableName: String, columnKey: String, columnValue: String, key: String, value: String): Boolean {
-            try {
-                val dataBase = dataBaseHelper.writableDatabase
-                val cursor = dataBase.rawQuery( "SELECT COUNT(${columnKey}) " +
-                        "FROM $tableName WHERE $columnKey = '$key' AND $columnValue = '$value'", null)
-                cursor.moveToFirst()
-                if (cursor.getInt(0) != 0) {
-                    cursor.close()
-                    return true
-                }
-            } catch (e: Exception) {
-                return false
-            }
-            return false
+            val dataBase = dataBaseHelper.readableDatabase
+            val query = "SELECT * FROM $tableName WHERE $columnKey = '$key' AND $columnValue = '$value'"
+            val cursor = dataBase.rawQuery(query, null)
+            val b = cursor.count > 0
+            cursor.close()
+            return b
         }
     }
 }
