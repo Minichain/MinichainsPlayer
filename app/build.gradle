@@ -1,45 +1,81 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+plugins {
+  id 'com.android.application'
+  id 'kotlin-android'
+  id 'kotlin-kapt'
+}
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.0"
+  compileSdkVersion versions.compile_sdk
 
-    defaultConfig {
-        applicationId "com.minichain.minichainsplayer"
-        minSdkVersion 23
-        targetSdkVersion 30
-        versionCode 1
-        versionName "0.08.02"
+  defaultConfig {
+    applicationId "com.minichain.minichainsplayer"
+    minSdkVersion versions.min_sdk
+    targetSdkVersion versions.target_sdk
+    compileSdkVersion versions.target_sdk
+    versionCode 1
+    versionName "0.08.02"
+  }
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+  buildTypes {
+    debug {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+    release {
+      minifyEnabled true
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
+  }
 
-    android.applicationVariants.all { variant ->
-        variant.outputs.all {
-            outputFileName = "MinichainsPlayer-" + "${variant.name}" + "-v${variant.versionName}.apk"
-        }
+  android.applicationVariants.all { variant ->
+    variant.outputs.all {
+      outputFileName = "MinichainsPlayer-" + "${variant.name}" + "-v${variant.versionName}.apk"
     }
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  kotlinOptions {
+    jvmTarget = '1.8'
+  }
+
+  buildFeatures {
+    compose true
+  }
+
+  composeOptions {
+    kotlinCompilerExtensionVersion "1.3.2"
+  }
+
+  //FIXME Why is this needed?? Check later
+  configurations.implementation {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+  }
 }
 
 dependencies {
-    implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.1.0'
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'androidx.core:core:1.1.0'
-    implementation 'androidx.media:media:1.1.0'
-    implementation 'com.google.android.material:material:1.2.1'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+  implementation fileTree(dir: "libs", include: ["*.jar"])
+
+  def composeBom = platform('androidx.compose:compose-bom:2022.10.00')
+  implementation composeBom
+  androidTestImplementation composeBom
+
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9"
+  implementation "androidx.core:core-ktx:$versions.androidx_core"
+  implementation "androidx.compose.material:material"
+  implementation "androidx.compose.runtime:runtime"
+  implementation "androidx.activity:activity-compose:$versions.androidx_activity_compose"
+  implementation "androidx.compose.ui:ui"
+  implementation "androidx.compose.ui:ui-graphics"
+  implementation "androidx.compose.ui:ui-tooling-preview"
+  implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$versions.androidx_lifecycle_viewmodel_compose"
+  implementation "androidx.lifecycle:lifecycle-runtime-compose:$versions.androidx_lifecycle_runtime_compose"
+
+  implementation "androidx.media3:media3-exoplayer:$versions.androidx_media3"
+  implementation "androidx.media3:media3-ui:$versions.androidx_media3"
+  implementation "androidx.media3:media3-common:$versions.androidx_media3"
 }

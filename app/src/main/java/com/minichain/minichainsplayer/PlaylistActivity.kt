@@ -1,5 +1,5 @@
 package com.minichain.minichainsplayer
 
-class SettingsActivity {
+class PlaylistActivity {
 
 }
