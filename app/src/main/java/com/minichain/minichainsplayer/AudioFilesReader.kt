@@ -2,6 +2,7 @@ package com.minichain.minichainsplayer
 
 import android.content.ContentUris
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.provider.MediaStore
 import androidx.media3.common.MediaItem
 
@@ -32,10 +33,12 @@ object AudioFilesReader {
         val fileId = cursor.getLong(idColumn)
         val fileName = cursor.getString(nameColumn)
         val fileUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, fileId)
+        val metadataRetriever = MediaMetadataRetriever().apply { setDataSource(context, fileUri) }
         audioFiles.add(
           SongData(
             uri = fileUri,
             fileName = fileName,
+            length = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong(),
             mediaItem = MediaItem.fromUri(fileUri)
           )
         )

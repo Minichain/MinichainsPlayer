@@ -39,19 +39,24 @@ class PlaylistActivity : ComponentActivity() {
         .fillMaxWidth()
     ) {
       items(playlist.size) { index ->
-        Column(
-          modifier = Modifier.padding(18.dp)
-        ) {
-          Text(
-            fontSize = 28.sp,
-            text = playlist[index].fileName
-          )
-          Text(
-            fontSize = 18.sp,
-            text = "1:25"
-          )
-        }
+        PlaylistItem(songData = playlist[index])
       }
+    }
+  }
+
+  @Composable
+  private fun PlaylistItem(songData: SongData) {
+    Column(
+      modifier = Modifier.padding(18.dp)
+    ) {
+      Text(
+        fontSize = 28.sp,
+        text = songData.fileName
+      )
+      Text(
+        fontSize = 18.sp,
+        text = songData.length?.millisecondsToHoursMinutesAndSeconds() ?: "00:00"
+      )
     }
   }
 }

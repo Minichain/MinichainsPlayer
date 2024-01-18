@@ -6,5 +6,6 @@ import androidx.media3.common.MediaItem
 data class SongData(
   val uri: Uri,
   val fileName: String,
+  val length: Long?,
   val mediaItem: MediaItem
 )

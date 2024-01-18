@@ -2,6 +2,7 @@ package com.minichain.minichainsplayer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -15,10 +16,13 @@ class PlaylistViewModel : ViewModel() {
 
   init {
     viewModelScope.launch {
-      App.dataCommunicationBridge.playlist.onEach {
-        _playlist.emit(it)
-      }.launchIn(this)
+      listenToPlaylistUpdates()
     }
   }
 
+  private fun CoroutineScope.listenToPlaylistUpdates() {
+    App.dataCommunicationBridge.playlist.onEach {
+      _playlist.emit(it)
+    }.launchIn(this)
+  }
 }
