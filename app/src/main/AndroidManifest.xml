@@ -33,6 +33,13 @@
       </intent-filter>
     </activity>
 
+    <activity
+      android:name=".PlaylistActivity"
+      android:exported="true"
+      android:launchMode="singleTask"
+      android:screenOrientation="portrait">
+    </activity>
+
     <service android:name=".PlayerService"
       android:foregroundServiceType="mediaPlayback"
       android:exported="false">

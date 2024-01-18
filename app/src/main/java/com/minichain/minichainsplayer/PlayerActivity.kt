@@ -46,13 +46,13 @@ class PlayerActivity : ComponentActivity() {
     }
     startForegroundService(Intent(applicationContext, PlayerService::class.java))
     setContent {
-      MinichainsPlayerActivityContent()
+      PlayerActivityContent()
     }
   }
 
-  @Composable
   @Preview
-  private fun MinichainsPlayerActivityContent() {
+  @Composable
+  private fun PlayerActivityContent() {
     Column(
       modifier = Modifier
         .fillMaxHeight()
@@ -77,7 +77,7 @@ class PlayerActivity : ComponentActivity() {
       val playlistCounter by viewModel.playlistCounter.collectAsStateWithLifecycle()
       Text(text = playlistCounter)
       FloatingActionButton(
-        onClick = { },
+        onClick = { launchPlaylistActivity() },
         modifier = Modifier.size(32.dp, 32.dp)
       ) {
         Icon(Icons.Filled.List, "Floating action button")
@@ -180,5 +180,9 @@ class PlayerActivity : ComponentActivity() {
         "Next song"
       )
     }
+  }
+
+  private fun launchPlaylistActivity() {
+    startActivity(Intent(this, PlaylistActivity::class.java))
   }
 }
