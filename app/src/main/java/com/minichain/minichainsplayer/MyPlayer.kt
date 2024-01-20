@@ -2,12 +2,11 @@ package com.minichain.minichainsplayer
 
 import android.content.Context
 import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MyPlayer(
@@ -54,15 +53,35 @@ class MyPlayer(
     println("AdriLog: items: ${player.mediaItemCount}")
   }
 
+  @UnstableApi
   private fun CoroutineScope.updateDataFrequently() {
+
+    player.currentMediaItem?.let { updateCurrentMediaItem(it) }
+
+    player.addAnalyticsListener(object : AnalyticsListener {
+
+      override fun onMediaItemTransition(eventTime: AnalyticsListener.EventTime, mediaItem: MediaItem?, reason: Int) {
+        println("AdriLog: onMediaItemTransition, mediaItem: $mediaItem")
+        mediaItem?.let { updateCurrentMediaItem(it) }
+      }
+
+      override fun onIsPlayingChanged(eventTime: AnalyticsListener.EventTime, isPlaying: Boolean) {
+        super.onIsPlayingChanged(eventTime, isPlaying)
+        App.dataCommunicationBridge.playerState.tryEmit(if (isPlaying) PlayerState.Playing else PlayerState.Stopped)
+      }
+    })
+
     launch {
       while (true) {
-        delay(500)
-        App.dataCommunicationBridge.playlist.value.find { it.mediaItem == player.currentMediaItem }.let {
-          App.dataCommunicationBridge.currentSong.emit(it)
-        }
-        App.dataCommunicationBridge.playerState.emit(if (player.isPlaying) PlayerState.Playing else PlayerState.Stopped)
+        delay(1000)
+        App.dataCommunicationBridge.currentSongPosition.emit(player.currentPosition)
       }
+    }
+  }
+
+  private fun updateCurrentMediaItem(mediaItem: MediaItem) {
+    App.dataCommunicationBridge.playlist.value.find { it.mediaItem == mediaItem }.let {
+      App.dataCommunicationBridge.currentSong.tryEmit(it)
     }
   }
 }

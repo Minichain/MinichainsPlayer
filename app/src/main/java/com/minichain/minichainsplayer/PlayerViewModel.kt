@@ -35,6 +35,19 @@ class PlayerViewModel : ViewModel() {
       listenToPlayerStateUpdates()
       listenToCurrentSongUpdates()
       listenToPlaylistCounterUpdates()
+
+      combine(
+        App.dataCommunicationBridge.currentSong,
+        App.dataCommunicationBridge.currentSongPosition
+      ) { currentSong, currentSongPosition ->
+        currentSong?.let {
+          currentSong.length?.let { currentSongLength ->
+            _songCurrentTimestamp.emit(currentSongPosition)
+            _songLength.emit(currentSongLength)
+            _songProgress.emit(currentSongPosition.toFloat() / currentSongLength.toFloat())
+          }
+        }
+      }.launchIn(this)
     }
   }
 
