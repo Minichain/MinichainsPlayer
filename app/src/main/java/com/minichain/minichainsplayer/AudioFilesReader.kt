@@ -29,8 +29,8 @@ object AudioFilesReader {
     )?.use { cursor ->
       val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
       val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
-      val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-      val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
+//      val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+//      val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
       while (cursor.moveToNext()) {
         val fileId = cursor.getLong(idColumn)
         val fileName = cursor.getString(nameColumn)

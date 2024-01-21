@@ -14,15 +14,25 @@ class PlaylistViewModel : ViewModel() {
   private val _playlist = MutableStateFlow<List<SongData>>(listOf())
   val playlist = _playlist.asStateFlow()
 
+  private val _songPlaying = MutableStateFlow<SongData?>(null)
+  val songPlaying = _songPlaying.asStateFlow()
+
   init {
     viewModelScope.launch {
       listenToPlaylistUpdates()
+      listenToCurrentSongUpdates()
     }
   }
 
   private fun CoroutineScope.listenToPlaylistUpdates() {
     App.dataCommunicationBridge.playlist.onEach {
       _playlist.emit(it)
+    }.launchIn(this)
+  }
+
+  private fun CoroutineScope.listenToCurrentSongUpdates() {
+    App.dataCommunicationBridge.currentSong.onEach {
+      _songPlaying.emit(it)
     }.launchIn(this)
   }
 }

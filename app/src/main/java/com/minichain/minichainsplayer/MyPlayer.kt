@@ -1,6 +1,7 @@
 package com.minichain.minichainsplayer
 
 import android.content.Context
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -9,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(UnstableApi::class)
 class MyPlayer(
   private val context: Context,
   private val scope: CoroutineScope
@@ -19,11 +21,10 @@ class MyPlayer(
   init {
     scope.launch {
       player = ExoPlayer.Builder(context).build()
-      AudioFilesReader.getAudioFilesInFolder(context, "%/Music/%").let { songList ->
-        updatePlaylist(songList)
-      }
+      val songList = AudioFilesReader.getAudioFilesInFolder(context, "%/Music/%")
+      updatePlaylist(songList)
       player.prepare()
-      updateDataFrequently()
+      updateAppDataOnPlayerUpdates()
     }
   }
 
@@ -53,8 +54,7 @@ class MyPlayer(
     println("AdriLog: items: ${player.mediaItemCount}")
   }
 
-  @UnstableApi
-  private fun CoroutineScope.updateDataFrequently() {
+  private fun CoroutineScope.updateAppDataOnPlayerUpdates() {
 
     player.currentMediaItem?.let { updateCurrentMediaItem(it) }
 
@@ -73,7 +73,7 @@ class MyPlayer(
 
     launch {
       while (true) {
-        delay(1000)
+        delay(500)
         App.dataCommunicationBridge.currentSongPosition.emit(player.currentPosition)
       }
     }
