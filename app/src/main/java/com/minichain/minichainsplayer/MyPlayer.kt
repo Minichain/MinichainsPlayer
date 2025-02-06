@@ -33,7 +33,6 @@ class MyPlayer(
       player.pause()
     } else {
       player.play()
-      println("AdriLog: player playing!")
     }
   }
 

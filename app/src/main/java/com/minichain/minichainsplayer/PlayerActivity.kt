@@ -15,17 +15,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Slider
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -100,7 +100,7 @@ class PlayerActivity : ComponentActivity() {
       contentAlignment = Alignment.Center,
     ) {
       val currentSongName by viewModel.currentSongName.collectAsStateWithLifecycle()
-      Text(text = currentSongName, style = MaterialTheme.typography.h6, modifier = Modifier.fillMaxWidth())
+      Text(text = currentSongName, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.fillMaxWidth())
     }
   }
 
